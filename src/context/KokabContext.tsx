@@ -27,7 +27,9 @@ import {
   FocusState,
   HydrationLog,
   TimeCapsuleMessage,
-  Habit
+  Habit,
+  UserProfile,
+  Streak
 } from '../types';
 import { calculatePlanetHealth } from '../planetLogic';
 
@@ -63,6 +65,7 @@ interface PlanetContextType extends KokabState {
   updateFamily: (data: Partial<FutureFamily>) => void;
   addInventoryItem: (item: Partial<InventoryItem>) => void;
   updateInventoryStock: (id: string, newStock: number) => void;
+  updateProfile: (data: Partial<UserProfile>) => void;
   
   // Consensus & Permissions
   requestConsensus: (type: ConsensusRequest['type'], data: any) => void;
@@ -127,6 +130,14 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
   });
   const [hydrationLogs, setHydrationLogs] = useState<HydrationLog[]>([]);
   const [timeCapsules, setTimeCapsules] = useState<TimeCapsuleMessage[]>([]);
+  const [profiles, setProfiles] = useState<Record<UserID, UserProfile>>({
+    F: { userId: 'F', name: 'فهد', bio: 'مستكشف رقمي', joinedAt: Date.now() },
+    B: { userId: 'B', name: 'بشرى', bio: 'باحثة عن الهدوء', joinedAt: Date.now() }
+  });
+  const [streaks, setStreaks] = useState<Record<UserID, Streak>>({
+    F: { userId: 'F', count: 0 },
+    B: { userId: 'B', count: 0 }
+  });
 
   // Derived State
   const planetHealth = calculatePlanetHealth(
@@ -256,6 +267,35 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
 
   const completeChallenge = (id: string, winner: UserID) => {
     setChallenges(prev => prev.map(c => c.id === id ? { ...c, status: 'completed', winner } : c));
+    
+    // Streak Logic
+    setStreaks(prev => {
+      const userStreak = prev[winner];
+      const now = Date.now();
+      const lastCompleted = userStreak.lastCompletedAt;
+      
+      let newCount = userStreak.count;
+      
+      if (!lastCompleted) {
+        newCount = 1;
+      } else {
+        const lastDate = new Date(lastCompleted).setHours(0,0,0,0);
+        const todayDate = new Date(now).setHours(0,0,0,0);
+        const diffDays = (todayDate - lastDate) / (1000 * 60 * 60 * 24);
+        
+        if (diffDays === 1) {
+          newCount += 1;
+        } else if (diffDays > 1) {
+          newCount = 1;
+        }
+        // if diffDays === 0, count remains same (already completed today)
+      }
+      
+      return {
+        ...prev,
+        [winner]: { userId: winner, count: newCount, lastCompletedAt: now }
+      };
+    });
   };
 
   const submitRomanceAnswer = (promptId: string, answer: string) => {
@@ -358,6 +398,13 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
     ));
   };
 
+  const updateProfile = (data: Partial<UserProfile>) => {
+    setProfiles(prev => ({
+      ...prev,
+      [currentUser]: { ...prev[currentUser], ...data }
+    }));
+  };
+
   const requestConsensus = (type: ConsensusRequest['type'], data: any) => {
     const req: ConsensusRequest = { id: Math.random().toString(36).substr(2, 9), type, requestedBy: currentUser, data, status: 'pending', timestamp: Date.now() };
     setConsensusRequests(prev => [...prev, req]);
@@ -396,12 +443,12 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
       calendar, tasks, inventory, transactions, liabilities, assets,
       privateNotes, vitals, habits,
       worship, gratitudeFeed, conflictRoom, vault, travel, family, notifications,
-      challenges, romancePrompts, library, focusStates, hydrationLogs, timeCapsules,
+      challenges, romancePrompts, library, focusStates, hydrationLogs, timeCapsules, profiles, streaks,
       updateMood, setWorkMode, addTask, completeTask, delegateTask, addTransaction,
       requestWithdraw, approveWithdraw, updateVitals, addNotification, syncWorship,
       addLiability, addAssetGoal,
       proposeChallenge, acceptChallenge, completeChallenge, submitRomanceAnswer, addBook, updateBookProgress, toggleFocusMode, logHydration, addTimeCapsule,
-      updateHabitProgress, addHabit, addTravelPlan, updateFamily, addInventoryItem, updateInventoryStock,
+      updateHabitProgress, addHabit, addTravelPlan, updateFamily, addInventoryItem, updateInventoryStock, updateProfile,
       requestConsensus, resolveConsensus, updatePermission,
       addPrivateNote, addGratitude, sendConflictMessage, revealConflictMessages
     }}>

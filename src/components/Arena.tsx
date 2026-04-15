@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Swords, Trophy, Timer, Play, CheckCircle2, XCircle, Plus, Zap } from 'lucide-react';
+import { Swords, Trophy, Timer, Play, CheckCircle2, XCircle, Plus, Zap, Flame } from 'lucide-react';
 import { usePlanet } from '../context/KokabContext';
 
 export const Arena: React.FC = () => {
-  const { challenges, proposeChallenge, acceptChallenge, completeChallenge, currentUser } = usePlanet();
+  const { challenges, proposeChallenge, acceptChallenge, completeChallenge, currentUser, streaks } = usePlanet();
   const [showAdd, setShowAdd] = useState(false);
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', points: 10, duration: 30 });
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handlePropose = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,8 +25,36 @@ export const Arena: React.FC = () => {
     setShowAdd(false);
   };
 
+  const getTimeRemaining = (startTime: number, durationMinutes: number) => {
+    const end = startTime + durationMinutes * 60 * 1000;
+    const remaining = end - now;
+    if (remaining <= 0) return 'انتهى الوقت';
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  const streak = streaks[currentUser];
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+      {/* Streak Section */}
+      <div className="glass-card-dark p-6 flex items-center justify-between overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+          <Flame size={120} className="absolute -bottom-10 -left-10 text-orange-500 rotate-12" />
+        </div>
+        <div className="relative z-10">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-orange-400 mb-1">سلسلة الإنجاز المتواصلة</div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-black">{streak.count}</span>
+            <span className="text-sm font-bold opacity-70">أيام من التحدي</span>
+          </div>
+        </div>
+        <div className="w-16 h-16 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-500 shadow-xl shadow-orange-500/20">
+          <Flame size={32} className="animate-bounce" />
+        </div>
+      </div>
+
       <div className="flex justify-between items-center">
         <div className="space-y-1">
           <h2 className="text-2xl font-black">ساحة التحديات</h2>
@@ -43,7 +77,7 @@ export const Arena: React.FC = () => {
         )}
         
         {challenges.map(c => (
-          <div key={c.id} className="glass-card p-6 space-y-4 relative overflow-hidden">
+          <div key={c.id} className={`${c.status === 'active' ? 'glass-card-dark' : 'glass-card'} p-6 space-y-4 relative overflow-hidden transition-all duration-500`}>
             {c.status === 'active' && (
               <div className="absolute top-0 right-0 w-1 h-full bg-emerald-500 animate-pulse" />
             )}
@@ -52,7 +86,7 @@ export const Arena: React.FC = () => {
               <div className="flex gap-4">
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
                   c.status === 'pending' ? 'bg-amber-500/10 text-amber-500' : 
-                  c.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-blue-500/10 text-blue-500'
+                  c.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/10 text-blue-500'
                 }`}>
                   <Zap size={24} />
                 </div>
@@ -91,19 +125,33 @@ export const Arena: React.FC = () => {
             )}
 
             {c.status === 'active' && (
-              <div className="pt-2">
-                <div className="h-1.5 w-full bg-[var(--color-bg-surface)] rounded-full overflow-hidden mb-4">
+              <div className="pt-2 space-y-4">
+                <div className="flex justify-between items-end">
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-bold opacity-50 uppercase tracking-widest">الوقت المتبقي</div>
+                    <div className="text-2xl font-mono font-black text-emerald-400">
+                      {getTimeRemaining(c.startTime || 0, c.durationMinutes)}
+                    </div>
+                  </div>
+                  <div className="text-[10px] font-bold opacity-50 uppercase tracking-widest">جاري كسب النقاط...</div>
+                </div>
+                
+                <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
                   <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: '65%' }}
-                    className="h-full bg-emerald-500"
+                    initial={{ width: '100%' }}
+                    animate={{ 
+                      width: `${Math.max(0, (1 - (now - (c.startTime || 0)) / (c.durationMinutes * 60000)) * 100)}%` 
+                    }}
+                    transition={{ ease: "linear" }}
+                    className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400"
                   />
                 </div>
+                
                 <button 
                   onClick={() => completeChallenge(c.id, currentUser)}
-                  className="w-full py-3 rounded-xl bg-blue-500 text-white font-bold text-sm flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-xl bg-white text-black font-black text-sm flex items-center justify-center gap-2 shadow-xl shadow-white/10 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                  <CheckCircle2 size={16} /> تسجيل الإنجاز
+                  <CheckCircle2 size={18} /> تسجيل الإنجاز الآن
                 </button>
               </div>
             )}

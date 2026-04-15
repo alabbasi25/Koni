@@ -103,6 +103,10 @@
   .glass-card {
     @apply bg-[var(--color-bg-card)] border border-[var(--color-bg-surface)] rounded-2xl shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-2xl hover:shadow-[var(--color-shadow)] text-[var(--color-text-primary)];
   }
+
+  .glass-card-dark {
+    @apply bg-black/40 border border-white/10 rounded-2xl shadow-2xl backdrop-blur-xl transition-all duration-300 text-white;
+  }
   
   .input-field {
     @apply w-full px-4 py-3 bg-[var(--color-bg-surface)] border-2 border-[var(--color-border)] rounded-2xl focus:outline-none focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary-light)]/40 transition-all duration-300 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]/25;
@@ -114,6 +118,14 @@
 
   .btn-secondary {
     @apply px-6 py-3 border-2 border-[var(--color-primary)] text-[var(--color-primary)] rounded-xl font-bold hover:bg-[var(--color-primary)]/10 transition-all duration-200 cursor-pointer;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 

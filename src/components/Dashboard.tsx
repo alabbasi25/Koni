@@ -62,6 +62,7 @@ import { HydrationStation } from './HydrationStation';
 import { TimeCapsule } from './TimeCapsule';
 import { HapticPresence } from './HapticPresence';
 import { FutureFamily } from './FutureFamily';
+import { ProfilePage } from './ProfilePage';
 
 type ViewID = 
   | 'arena' | 'romance' | 'knowledge' | 'focus' | 'conflict'
@@ -147,70 +148,152 @@ export const Dashboard: React.FC = () => {
       case 'permissions': return <PermissionsManager />;
       case 'ai': return <AIOracle />;
       case 'chat': return <AIOracle />;
-      case 'profile': return <ProfileView />;
+      case 'profile': return <ProfilePage />;
       default: return <HomeView />;
     }
   };
 
   return (
-    <div className="max-w-md mx-auto min-h-screen flex flex-col relative overflow-hidden">
-      {/* Header */}
-      <header className="p-6 flex justify-between items-center z-50">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsMenuOpen(true)}
-            className="w-10 h-10 rounded-xl glass flex items-center justify-center text-[var(--color-primary)]"
-          >
-            <Menu size={24} />
-          </button>
-          <div>
-            <h1 className="text-xl font-black tracking-tighter">كوكب</h1>
-            <div className="flex items-center gap-1.5">
-              <div className={`w-1.5 h-1.5 rounded-full ${partnerStatus?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
-              <span className="text-[10px] font-bold opacity-60">
-                {partnerStatus?.status === 'online' ? 'الشريك متصل' : 'الشريك غير متصل'}
-              </span>
-            </div>
+    <div className="min-h-screen flex relative overflow-hidden bg-[var(--color-bg-deep)]">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-72 border-l border-[var(--color-border)] flex-col bg-[var(--color-bg-card)]/30 backdrop-blur-2xl z-50">
+        <div className="p-8 flex items-center gap-3 border-b border-[var(--color-border)]">
+          <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)] flex items-center justify-center text-white shadow-lg shadow-[var(--color-primary)]/20">
+            <Heart size={24} />
           </div>
+          <span className="text-2xl font-black tracking-tighter">كوكب</span>
         </div>
         
-        <div className="flex items-center gap-2">
-          <button 
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="w-10 h-10 rounded-xl glass flex items-center justify-center relative"
-          >
-            <Bell size={20} />
-            {notifications.some(n => !n.read) && (
-              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-[var(--color-bg-deep)]" />
-            )}
-          </button>
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
+          <div className="space-y-1">
+            <button
+              onClick={() => setActiveTab('home')}
+              className={`w-full p-3 rounded-xl flex items-center gap-4 transition-all ${activeTab === 'home' ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' : 'hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]'}`}
+            >
+              <LayoutDashboard size={20} />
+              <span className="text-sm font-bold">الرئيسية</span>
+            </button>
+          </div>
+          
+          {['جناح المتعة والتواصل', 'جناح العقل والهوايات', 'المنظومة المركزية'].map(cat => (
+            <div key={cat} className="space-y-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-40 px-2">{cat}</h3>
+              <div className="space-y-1">
+                {menuItems.filter(item => item.category === cat).map(item => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id as ViewID)}
+                    className={`w-full p-3 rounded-xl flex items-center gap-4 transition-all ${activeTab === item.id ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' : 'hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]'}`}
+                  >
+                    {item.icon}
+                    <span className="text-sm font-bold">{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="p-6 border-t border-[var(--color-border)]">
           <button 
             onClick={() => setActiveTab('profile')}
-            className="w-10 h-10 rounded-xl glass overflow-hidden border-2 border-[var(--color-primary)]/20"
+            className="w-full p-3 rounded-xl bg-[var(--color-bg-surface)] flex items-center gap-3 hover:bg-[var(--color-primary)]/10 transition-all group"
           >
-            <img 
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser === 'F' ? 'Fahad' : 'Bushra'}`} 
-              alt="Profile" 
-              className="w-full h-full object-cover"
-            />
+            <div className="w-10 h-10 rounded-lg overflow-hidden border-2 border-[var(--color-primary)]/20 group-hover:border-[var(--color-primary)] transition-colors">
+              <img 
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser === 'F' ? 'Fahad' : 'Bushra'}`} 
+                alt="Profile" 
+              />
+            </div>
+            <div className="text-right">
+              <div className="text-xs font-bold">{currentUser === 'F' ? 'فهد' : 'بشرى'}</div>
+              <div className="text-[10px] opacity-50">عرض الملف الشخصي</div>
+            </div>
           </button>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 px-6 pb-32 overflow-y-auto no-scrollbar">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.2 }}
-          >
-            {renderView()}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+      {/* Main Mobile-First Container */}
+      <div className="flex-1 flex flex-col max-w-md mx-auto lg:max-w-none lg:px-12 relative overflow-hidden">
+        {/* Header */}
+        <header className="p-6 flex justify-between items-center z-50 lg:py-8 lg:px-0">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsMenuOpen(true)}
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-[var(--color-primary)] lg:hidden"
+            >
+              <Menu size={24} />
+            </button>
+            <div className="lg:hidden">
+              <h1 className="text-xl font-black tracking-tighter">كوكب</h1>
+              <div className="flex items-center gap-1.5">
+                <div className={`w-1.5 h-1.5 rounded-full ${partnerStatus?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
+                <span className="text-[10px] font-bold opacity-60">
+                  {partnerStatus?.status === 'online' ? 'الشريك متصل' : 'الشريك غير متصل'}
+                </span>
+              </div>
+            </div>
+            {/* Desktop Breadcrumb-ish */}
+            <div className="hidden lg:block">
+              <h2 className="text-2xl font-black tracking-tight">
+                {activeTab === 'home' ? 'مرحباً بك في كوكبكم' : menuItems.find(i => i.id === activeTab)?.label || 'الملف الشخصي'}
+              </h2>
+              <p className="text-xs text-[var(--color-text-secondary)] font-bold">
+                {new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="hidden lg:flex items-center gap-4 ml-6 px-4 py-2 rounded-2xl bg-[var(--color-bg-surface)] border border-[var(--color-border)]">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${partnerStatus?.status === 'online' ? 'bg-green-500' : 'bg-gray-500'}`} />
+                <span className="text-[10px] font-bold opacity-60">الشريك: {partnerStatus?.status === 'online' ? 'متصل' : 'غير متصل'}</span>
+              </div>
+              <div className="w-px h-4 bg-[var(--color-border)]" />
+              <div className="flex items-center gap-2">
+                <Sparkles size={12} className="text-amber-500" />
+                <span className="text-[10px] font-bold opacity-60">صحة الكوكب: {planetHealth.score}%</span>
+              </div>
+            </div>
+
+            <button 
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="w-10 h-10 rounded-xl glass flex items-center justify-center relative hover:bg-[var(--color-primary)]/10 transition-colors"
+            >
+              <Bell size={20} />
+              {notifications.some(n => !n.read) && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-[var(--color-bg-deep)]" />
+              )}
+            </button>
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className="w-10 h-10 rounded-xl glass overflow-hidden border-2 border-[var(--color-primary)]/20 hover:border-[var(--color-primary)] transition-all lg:hidden"
+            >
+              <img 
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser === 'F' ? 'Fahad' : 'Bushra'}`} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
+            </button>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="flex-1 px-6 pb-32 overflow-y-auto no-scrollbar lg:px-0 lg:max-w-4xl">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {renderView()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
 
       {/* Consensual Input Overlay */}
       <AnimatePresence>
@@ -330,7 +413,7 @@ export const Dashboard: React.FC = () => {
       </AnimatePresence>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-6 z-40">
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-6 z-40 lg:hidden">
         <div className="glass rounded-3xl p-2 flex justify-between items-center shadow-2xl shadow-[var(--color-shadow)]">
           <TabItem 
             icon={<Heart size={24} />} 
@@ -423,24 +506,25 @@ const HomeView: React.FC = () => {
       {/* Quick Actions */}
       <div className="space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-widest opacity-60 px-1">إجراءات سريعة</h3>
-        <div className="grid grid-cols-2 gap-3">
-          <button className="glass p-4 rounded-2xl flex items-center gap-3 hover:bg-[var(--color-primary)]/10 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-500 flex items-center justify-center">
-              <Plus size={18} />
-            </div>
-            <span className="text-xs font-bold">إضافة مصروف</span>
-          </button>
-          <button className="glass p-4 rounded-2xl flex items-center gap-3 hover:bg-[var(--color-primary)]/10 transition-colors">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
-              <ListTodo size={18} />
-            </div>
-            <span className="text-xs font-bold">مهمة جديدة</span>
-          </button>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <QuickAction icon={<Plus size={18} />} label="إضافة مصروف" color="blue" />
+          <QuickAction icon={<ListTodo size={18} />} label="مهمة جديدة" color="emerald" />
+          <QuickAction icon={<Calendar size={18} />} label="موعد مشترك" color="purple" />
+          <QuickAction icon={<Bot size={18} />} label="استشارة ذكية" color="rose" />
         </div>
       </div>
     </div>
   );
 };
+
+const QuickAction: React.FC<{ icon: React.ReactNode; label: string; color: string }> = ({ icon, label, color }) => (
+  <button className="glass p-4 rounded-2xl flex items-center gap-3 hover:bg-[var(--color-primary)]/10 transition-colors">
+    <div className={`w-8 h-8 rounded-lg bg-${color}-500/20 text-${color}-500 flex items-center justify-center`}>
+      {icon}
+    </div>
+    <span className="text-xs font-bold">{label}</span>
+  </button>
+);
 
 const PillarCard: React.FC<{ label: string; value: number; color: 'blue' | 'emerald' | 'purple' | 'rose' }> = ({ label, value, color }) => {
   const colorMap = {
@@ -462,50 +546,6 @@ const PillarCard: React.FC<{ label: string; value: number; color: 'blue' | 'emer
           animate={{ width: `${value}%` }}
           className={`h-full ${colorMap[color].split(' ')[0]}`}
         />
-      </div>
-    </div>
-  );
-};
-
-const ProfileView: React.FC = () => {
-  const { currentUser } = usePlanet();
-  
-  return (
-    <div className="space-y-8 text-center">
-      <div className="relative inline-block">
-        <div className="w-32 h-32 rounded-3xl glass p-1 border-2 border-[var(--color-primary)]/30">
-          <img 
-            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser === 'F' ? 'Fahad' : 'Bushra'}`} 
-            alt="Profile" 
-            className="w-full h-full object-cover rounded-2xl"
-          />
-        </div>
-        <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-green-500 border-4 border-[var(--color-bg-deep)]" />
-      </div>
-      
-      <div>
-        <h2 className="text-2xl font-black">{currentUser === 'F' ? 'فهد' : 'بشرى'}</h2>
-        <p className="text-sm text-[var(--color-text-secondary)]">مستكشف الكوكب</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="glass-card p-6">
-          <div className="text-2xl font-black">٤٢</div>
-          <div className="text-[10px] opacity-50 uppercase font-bold">مهمة منجزة</div>
-        </div>
-        <div className="glass-card p-6">
-          <div className="text-2xl font-black">١٢</div>
-          <div className="text-[10px] opacity-50 uppercase font-bold">هدف محقق</div>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <button className="btn-secondary w-full py-4 flex items-center justify-center gap-2">
-          <Settings size={20} /> إعدادات الحساب
-        </button>
-        <button className="w-full py-4 text-rose-500 font-bold text-sm">
-          تسجيل الخروج
-        </button>
       </div>
     </div>
   );

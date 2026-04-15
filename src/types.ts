@@ -160,6 +160,20 @@ export interface Habit {
   lastUpdated: number;
 }
 
+export interface UserProfile {
+  userId: UserID;
+  name: string;
+  avatar?: string;
+  bio?: string;
+  joinedAt: number;
+}
+
+export interface Streak {
+  userId: UserID;
+  count: number;
+  lastCompletedAt?: number;
+}
+
 export interface KokabState {
   currentUser: UserID;
   partnerStatus: UserStatus | null;
@@ -194,6 +208,8 @@ export interface KokabState {
   focusStates: Record<UserID, FocusState>;
   hydrationLogs: HydrationLog[];
   timeCapsules: TimeCapsuleMessage[];
+  profiles: Record<UserID, UserProfile>;
+  streaks: Record<UserID, Streak>;
 }
 
 export interface Challenge {
