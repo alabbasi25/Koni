@@ -68,6 +68,8 @@ export interface AssetGoal {
   target: number;
   current: number;
   requiresDualAuth: boolean;
+  isLocked: boolean;
+  unlockRequests: UserID[]; // Both must be present to unlock
   withdrawRequests?: {
     amount: number;
     requestedBy: UserID;
@@ -93,6 +95,7 @@ export interface WorshipSession {
   progress: number;
   target: number;
   isLive: boolean;
+  syncCounter?: Record<UserID, number>; // Real-time tasbeeh sync
 }
 
 export interface VitalSigns {
@@ -126,6 +129,17 @@ export interface FutureFamily {
   names: string[];
   educationSavings: number;
   notes: string;
+  vision: string;
+  childrenReports: ChildReport[];
+}
+
+export interface ChildReport {
+  id: string;
+  childName: string;
+  subject: string;
+  status: 'excellent' | 'good' | 'needs_improvement';
+  notes: string;
+  lastUpdated: number;
 }
 
 export interface PrivateNote {
@@ -166,6 +180,7 @@ export interface UserProfile {
   avatar?: string;
   bio?: string;
   joinedAt: number;
+  delegatedSpendingCeiling: number; // Max amount without partner approval
 }
 
 export interface Streak {
@@ -178,8 +193,10 @@ export interface KokabState {
   currentUser: UserID;
   partnerStatus: UserStatus | null;
   planetHealth: PlanetHealth;
+  barakahPoints: number;
   permissions: Permission[];
   consensusRequests: ConsensusRequest[];
+  arbitrationRequests: ArbitrationRequest[];
   
   // Layer 1
   calendar: CalendarEvent[];
@@ -239,6 +256,16 @@ export interface Book {
   progress: Record<UserID, number>; // Page number
   totalPages: number;
   category: string;
+  audioNotes: AudioNote[];
+}
+
+export interface AudioNote {
+  id: string;
+  userId: UserID;
+  timestamp: number;
+  duration: number;
+  url: string; // Mock URL
+  pageNumber: number;
 }
 
 export interface FocusState {
@@ -280,6 +307,10 @@ export interface SecureDocument {
   expiryDate?: number;
   isTimeCapsule?: boolean;
   unlockDate?: number;
+  timedAccess?: {
+    grantedTo: UserID[];
+    expiresAt: number;
+  };
 }
 
 export interface PlanetHealth {
@@ -292,7 +323,19 @@ export interface PlanetHealth {
   };
 }
 
-export type Theme = 'midnight' | 'emerald' | 'rose' | 'gold';
+export interface ArbitrationRequest {
+  id: string;
+  topic: string;
+  proposerId: UserID;
+  proposerArgument: string;
+  partnerArgument?: string;
+  status: 'pending_partner' | 'processing_ai' | 'resolved';
+  aiSuggestion?: string;
+  timestamp: number;
+}
+
+export type Theme = 'midnight' | 'emerald' | 'gold' | 'rose' | 'system';
+
 export type PrivacyState = 'private' | 'shared' | 'public';
 
 export interface KokabItem {

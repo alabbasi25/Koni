@@ -29,7 +29,10 @@ import {
   TimeCapsuleMessage,
   Habit,
   UserProfile,
-  Streak
+  Streak,
+  ArbitrationRequest,
+  ChildReport,
+  AudioNote
 } from '../types';
 import { calculatePlanetHealth } from '../planetLogic';
 
@@ -67,10 +70,25 @@ interface PlanetContextType extends KokabState {
   updateInventoryStock: (id: string, newStock: number) => void;
   updateProfile: (data: Partial<UserProfile>) => void;
   
+  // Advanced Features
+  syncTasbeeh: (sessionId: string, count: number) => void;
+  addAudioNote: (bookId: string, note: Partial<AudioNote>) => void;
+  requestArbitration: (topic: string, argument: string) => void;
+  submitArbitrationArgument: (id: string, argument: string) => void;
+  resolveArbitration: (id: string, suggestion: string) => void;
+  grantTimedAccess: (docId: string, userId: UserID, durationMinutes: number) => void;
+  unlockAsset: (assetId: string) => void;
+  addChildReport: (report: Partial<ChildReport>) => void;
+  addBarakahPoints: (points: number) => void;
+
   // Consensus & Permissions
   requestConsensus: (type: ConsensusRequest['type'], data: any) => void;
   resolveConsensus: (requestId: string, approved: boolean) => void;
   updatePermission: (permissionId: string, grantedTo: UserID[]) => void;
+  
+  // Testing Mode
+  populateTestData: () => void;
+  resetApp: () => void;
   
   // Layer 2 & 3
   addPrivateNote: (content: string) => void;
@@ -122,7 +140,15 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
 
   // New 18-View States
   const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [romancePrompts, setRomancePrompts] = useState<RomancePrompt[]>([]);
+  const [romancePrompts, setRomancePrompts] = useState<RomancePrompt[]>([
+    {
+      id: 'p1',
+      question: 'ما هو أكثر شيء تقدره في علاقتنا اليوم؟',
+      answers: { F: '', B: '' },
+      revealed: false,
+      timestamp: Date.now()
+    }
+  ]);
   const [library, setLibrary] = useState<Book[]>([]);
   const [focusStates, setFocusStates] = useState<Record<UserID, FocusState>>({
     F: { userId: 'F', isActive: false, startTime: 0 },
@@ -131,13 +157,15 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
   const [hydrationLogs, setHydrationLogs] = useState<HydrationLog[]>([]);
   const [timeCapsules, setTimeCapsules] = useState<TimeCapsuleMessage[]>([]);
   const [profiles, setProfiles] = useState<Record<UserID, UserProfile>>({
-    F: { userId: 'F', name: 'فهد', bio: 'مستكشف رقمي', joinedAt: Date.now() },
-    B: { userId: 'B', name: 'بشرى', bio: 'باحثة عن الهدوء', joinedAt: Date.now() }
+    F: { userId: 'F', name: 'فهد', bio: 'مستكشف رقمي', joinedAt: Date.now(), delegatedSpendingCeiling: 1000 },
+    B: { userId: 'B', name: 'بشرى', bio: 'باحثة عن الهدوء', joinedAt: Date.now(), delegatedSpendingCeiling: 500 }
   });
   const [streaks, setStreaks] = useState<Record<UserID, Streak>>({
     F: { userId: 'F', count: 0 },
     B: { userId: 'B', count: 0 }
   });
+  const [barakahPoints, setBarakahPoints] = useState(150);
+  const [arbitrationRequests, setArbitrationRequests] = useState<ArbitrationRequest[]>([]);
 
   // Derived State
   const planetHealth = calculatePlanetHealth(
@@ -242,7 +270,9 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
       name: g.name || '',
       target: g.target || 0,
       current: g.current || 0,
-      requiresDualAuth: g.requiresDualAuth || false
+      requiresDualAuth: g.requiresDualAuth || false,
+      isLocked: g.isLocked || false,
+      unlockRequests: g.unlockRequests || []
     };
     setAssets(prev => [...prev, newG]);
   };
@@ -316,7 +346,8 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
       author: book.author || '',
       progress: { F: 0, B: 0 },
       totalPages: book.totalPages || 100,
-      category: book.category || 'General'
+      category: book.category || 'General',
+      audioNotes: []
     };
     setLibrary(prev => [...prev, newBook]);
   };
@@ -405,6 +436,82 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
     }));
   };
 
+  const syncTasbeeh = (sessionId: string, count: number) => {
+    setWorship(prev => prev.map(s => 
+      s.id === sessionId ? { ...s, syncCounter: { ...s.syncCounter, [currentUser]: count } } : s
+    ));
+  };
+
+  const addAudioNote = (bookId: string, note: Partial<AudioNote>) => {
+    const fullNote: AudioNote = {
+      id: Math.random().toString(36).substr(2, 9),
+      userId: currentUser,
+      timestamp: Date.now(),
+      duration: note.duration || 0,
+      url: note.url || '',
+      pageNumber: note.pageNumber || 0
+    };
+    setLibrary(prev => prev.map(b => 
+      b.id === bookId ? { ...b, audioNotes: [...(b.audioNotes || []), fullNote] } : b
+    ));
+  };
+
+  const requestArbitration = (topic: string, argument: string) => {
+    const req: ArbitrationRequest = {
+      id: Math.random().toString(36).substr(2, 9),
+      topic,
+      proposerId: currentUser,
+      proposerArgument: argument,
+      status: 'pending_partner',
+      timestamp: Date.now()
+    };
+    setArbitrationRequests(prev => [req, ...prev]);
+  };
+
+  const submitArbitrationArgument = (id: string, argument: string) => {
+    setArbitrationRequests(prev => prev.map(r => 
+      r.id === id ? { ...r, partnerArgument: argument, status: 'processing_ai' } : r
+    ));
+  };
+
+  const resolveArbitration = (id: string, suggestion: string) => {
+    setArbitrationRequests(prev => prev.map(r => 
+      r.id === id ? { ...r, aiSuggestion: suggestion, status: 'resolved' } : r
+    ));
+  };
+
+  const grantTimedAccess = (docId: string, userId: UserID, durationMinutes: number) => {
+    setVault(prev => prev.map(d => 
+      d.id === docId ? { ...d, timedAccess: { grantedTo: [userId], expiresAt: Date.now() + durationMinutes * 60000 } } : d
+    ));
+  };
+
+  const unlockAsset = (assetId: string) => {
+    setAssets(prev => prev.map(a => {
+      if (a.id === assetId) {
+        const newRequests = Array.from(new Set([...a.unlockRequests, currentUser]));
+        return { ...a, unlockRequests: newRequests, isLocked: newRequests.length < 2 };
+      }
+      return a;
+    }));
+  };
+
+  const addChildReport = (report: Partial<ChildReport>) => {
+    const fullReport: ChildReport = {
+      id: Math.random().toString(36).substr(2, 9),
+      childName: report.childName || '',
+      subject: report.subject || '',
+      status: report.status || 'good',
+      notes: report.notes || '',
+      lastUpdated: Date.now()
+    };
+    setFamily(prev => ({ ...prev, childrenReports: [...(prev.childrenReports || []), fullReport] }));
+  };
+
+  const addBarakahPoints = (points: number) => {
+    setBarakahPoints(prev => prev + points);
+  };
+
   const requestConsensus = (type: ConsensusRequest['type'], data: any) => {
     const req: ConsensusRequest = { id: Math.random().toString(36).substr(2, 9), type, requestedBy: currentUser, data, status: 'pending', timestamp: Date.now() };
     setConsensusRequests(prev => [...prev, req]);
@@ -416,6 +523,73 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
 
   const updatePermission = (permissionId: string, grantedTo: UserID[]) => {
     setPermissions(prev => prev.map(p => p.id === permissionId ? { ...p, grantedTo } : p));
+  };
+
+  const populateTestData = () => {
+    // Populate Tasks
+    setTasks([
+      { id: 't1', title: 'شراء مستلزمات العشاء', assignedTo: 'F', status: 'pending', priority: 'medium', estimatedMinutes: 45, createdAt: Date.now() },
+      { id: 't2', title: 'تنظيف الحديقة', assignedTo: 'B', status: 'pending', priority: 'low', estimatedMinutes: 60, createdAt: Date.now() },
+      { id: 't3', title: 'دفع فاتورة الكهرباء', assignedTo: 'F', status: 'completed', priority: 'high', estimatedMinutes: 10, createdAt: Date.now() },
+    ]);
+
+    // Populate Transactions
+    setTransactions([
+      { id: 'tr1', amount: 250, type: 'variable', category: 'طعام', description: 'سوبر ماركت', timestamp: Date.now() - 86400000, status: 'confirmed' },
+      { id: 'tr2', amount: 1200, type: 'fixed', category: 'إيجار', description: 'قسط الشقة', timestamp: Date.now() - 172800000, status: 'confirmed' },
+    ]);
+
+    // Populate Inventory
+    setInventory([
+      { id: 'i1', name: 'حليب', category: 'طعام', currentStock: 2, minStock: 1, consumptionFrequencyDays: 7, lastRestocked: Date.now(), status: 'ok' },
+      { id: 'i2', name: 'خبز', category: 'طعام', currentStock: 0, minStock: 2, consumptionFrequencyDays: 2, lastRestocked: Date.now(), status: 'low' },
+    ]);
+
+    // Populate Challenges
+    setChallenges([
+      { id: 'c1', title: 'تحدي القراءة', description: 'قراءة 20 صفحة من كتاب جديد', proposer: 'B', status: 'pending', points: 15, durationMinutes: 30 },
+      { id: 'c2', title: 'تحدي المشي', description: 'المشي لمسافة 5 كم', proposer: 'F', status: 'active', points: 20, durationMinutes: 60, startTime: Date.now() - 1800000 },
+    ]);
+
+    // Populate Worship
+    setWorship([
+      { id: 'w1', type: 'tasbeeh', title: 'تسبيح مشترك', progress: 45, target: 100, syncCounter: { F: 25, B: 20 } }
+    ]);
+
+    // Populate Arbitration
+    setArbitrationRequests([
+      { 
+        id: 'a1', 
+        topic: 'لون طلاء الغرفة', 
+        proposerId: 'F', 
+        proposerArgument: 'أفضل اللون الأزرق لأنه مريح للعين.', 
+        partnerArgument: 'أفضل اللون الرمادي لأنه عصري أكثر.', 
+        status: 'processing_ai', 
+        timestamp: Date.now() 
+      }
+    ]);
+
+    // Populate Streaks
+    setStreaks({
+      F: { userId: 'F', count: 5, lastCompletedAt: Date.now() - 86400000 },
+      B: { userId: 'B', count: 3, lastCompletedAt: Date.now() - 86400000 }
+    });
+
+    addNotification({ title: 'تم تفعيل وضع التجربة', content: 'تم ملء التطبيق ببيانات تجريبية لمعاينة كافة الميزات.' });
+  };
+
+  const resetApp = () => {
+    setTasks([]);
+    setTransactions([]);
+    setInventory([]);
+    setChallenges([]);
+    setWorship([]);
+    setArbitrationRequests([]);
+    setStreaks({
+      F: { userId: 'F', count: 0, lastCompletedAt: 0 },
+      B: { userId: 'B', count: 0, lastCompletedAt: 0 }
+    });
+    setNotifications([{ id: 'n1', title: 'تم تصفير النظام', content: 'تم مسح كافة البيانات بنجاح.', timestamp: Date.now() }]);
   };
 
   const addPrivateNote = (content: string) => {
@@ -444,12 +618,14 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
       privateNotes, vitals, habits,
       worship, gratitudeFeed, conflictRoom, vault, travel, family, notifications,
       challenges, romancePrompts, library, focusStates, hydrationLogs, timeCapsules, profiles, streaks,
+      barakahPoints, arbitrationRequests,
       updateMood, setWorkMode, addTask, completeTask, delegateTask, addTransaction,
       requestWithdraw, approveWithdraw, updateVitals, addNotification, syncWorship,
       addLiability, addAssetGoal,
       proposeChallenge, acceptChallenge, completeChallenge, submitRomanceAnswer, addBook, updateBookProgress, toggleFocusMode, logHydration, addTimeCapsule,
       updateHabitProgress, addHabit, addTravelPlan, updateFamily, addInventoryItem, updateInventoryStock, updateProfile,
-      requestConsensus, resolveConsensus, updatePermission,
+      syncTasbeeh, addAudioNote, requestArbitration, submitArbitrationArgument, resolveArbitration, grantTimedAccess, unlockAsset, addChildReport, addBarakahPoints,
+      requestConsensus, resolveConsensus, updatePermission, populateTestData, resetApp,
       addPrivateNote, addGratitude, sendConflictMessage, revealConflictMessages
     }}>
       {children}
