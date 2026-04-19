@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, GraduationCap, Library, Plus, Search, Book as BookIcon, ChevronRight, TrendingUp, X, Mic, Play, MessageSquareQuote } from 'lucide-react';
+import { BookOpen, GraduationCap, Library, Plus, Search, Book as BookIcon, ChevronRight, TrendingUp, X, Mic, Play, MessageSquareQuote, Palette, Clock, CheckCircle2, History } from 'lucide-react';
 import { usePlanet } from '../../context/KokabContext';
 import { ModernInput } from '../ui/ModernInput';
 
 export const KnowledgeStudio: React.FC = () => {
-  const { library, updateBookProgress, addBook, currentUser, addAudioNote } = usePlanet();
+  const { library, updateBookProgress, addBook, currentUser, addAudioNote, hobbyProjects, updateHobbyProgress, addHobbyProject } = usePlanet();
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
+  const [showAddHobby, setShowAddHobby] = useState(false);
   const [showAudioNote, setShowAudioNote] = useState<string | null>(null);
   const [newBook, setNewBook] = useState({ title: '', author: '', totalPages: 100, category: 'General' });
   const [audioNoteContent, setAudioNoteContent] = useState({ page: 1, note: '' });
+  const [newHobby, setNewHobby] = useState({ title: '', description: '', totalSteps: 10 });
 
   const handleAddAudioNote = (bookId: string) => {
     addAudioNote(bookId, audioNoteContent.page, audioNoteContent.note);
@@ -25,6 +27,13 @@ export const KnowledgeStudio: React.FC = () => {
     setNewBook({ title: '', author: '', totalPages: 100, category: 'General' });
   };
 
+  const handleAddHobby = (e: React.FormEvent) => {
+    e.preventDefault();
+    addHobbyProject(newHobby);
+    setShowAddHobby(false);
+    setNewHobby({ title: '', description: '', totalSteps: 10 });
+  };
+
   const filteredLibrary = library.filter(b => 
     b.title.toLowerCase().includes(search.toLowerCase()) || 
     b.author.toLowerCase().includes(search.toLowerCase())
@@ -34,16 +43,83 @@ export const KnowledgeStudio: React.FC = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
       <div className="flex justify-between items-center">
         <div className="space-y-1">
-          <h2 className="text-2xl font-black">استوديو المعرفة</h2>
+          <h2 className="text-2xl font-black">استوديو المعرفة والهوايات</h2>
           <p className="text-sm text-[var(--color-text-secondary)]">رحلة التعلم والنمو العقلي المشترك</p>
         </div>
-        <button 
-          onClick={() => setShowAdd(true)}
-          className="w-12 h-12 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20"
-        >
-          <Plus size={24} />
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => setShowAddHobby(true)}
+            className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center border border-purple-500/20"
+          >
+            <Palette size={20} />
+          </button>
+          <button 
+            onClick={() => setShowAdd(true)}
+            className="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20"
+          >
+            <Plus size={20} />
+          </button>
+        </div>
       </div>
+
+      {/* Time-lapse Builder (Hobby Projects) */}
+      <section className="space-y-4">
+        <div className="flex justify-between items-center px-1">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">مشاريع الهوايات (Time-lapse)</h3>
+          <div className="flex items-center gap-1 text-[8px] font-black text-purple-500 uppercase tracking-widest">
+            <History size={10} /> جاري التوثيق
+          </div>
+        </div>
+        
+        <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-6 px-6">
+          {hobbyProjects.map(project => (
+            <motion.div 
+              key={project.id}
+              className="flex-shrink-0 w-64 glass-card p-5 space-y-4 border-purple-500/10"
+            >
+              <div className="flex justify-between items-start">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center">
+                  <Palette size={20} />
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-black text-purple-500">{Math.round((project.currentStep / project.totalSteps) * 100)}%</div>
+                  <div className="text-[8px] opacity-40 uppercase">مكتمل</div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-bold text-sm">{project.title}</h4>
+                <p className="text-[10px] opacity-50 line-clamp-1">{project.description}</p>
+              </div>
+
+              {/* Progressive Reveal Timeline */}
+              <div className="flex gap-1">
+                {Array.from({ length: project.totalSteps }).map((_, i) => (
+                  <div 
+                    key={i}
+                    className={`h-1 flex-1 rounded-full transition-all duration-500 ${
+                      i < project.currentStep ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-white/5'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <div className="flex justify-between items-center pt-2">
+                <div className="text-[8px] opacity-40">الخطوة {project.currentStep} من {project.totalSteps}</div>
+                <button 
+                  onClick={() => updateHobbyProgress(project.id, Math.min(project.totalSteps, project.currentStep + 1))}
+                  className="p-1.5 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500 transition-all"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+            </motion.div>
+          ))}
+          {hobbyProjects.length === 0 && (
+            <div className="w-full py-8 text-center glass-card opacity-40 text-xs italic">لا توجد مشاريع هوايات نشطة...</div>
+          )}
+        </div>
+      </section>
 
       <div className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)]" size={18} />

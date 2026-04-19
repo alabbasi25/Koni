@@ -32,9 +32,11 @@ import {
   Send,
   Swords,
   Library,
+  Book,
   Droplets,
   Zap,
-  Baby
+  Baby,
+  GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePlanet } from '../../context/KokabContext';
@@ -64,11 +66,17 @@ import { HapticPresence } from '../features/HapticPresence';
 import { FutureFamily } from '../features/FutureFamily';
 import { ProfilePage } from '../views/ProfilePage';
 
+import { MoodTracker } from '../features/MoodTracker';
+import { SharedJournal } from '../features/SharedJournal';
+import { LoveLanguageQuiz } from '../features/LoveLanguageQuiz';
+import { DateNightAI } from '../features/DateNightAI';
+
 type ViewID = 
   | 'arena' | 'romance' | 'knowledge' | 'focus' | 'conflict'
   | 'system' | 'ledger' | 'future_fund' | 'tasks' | 'inventory' | 'worship'
   | 'private' | 'growth' | 'health' | 'hydration' | 'travel' | 'family'
   | 'haptic' | 'gratitude' | 'capsule' | 'vault'
+  | 'mood' | 'journal' | 'quiz' | 'dates'
   | 'home' | 'profile' | 'permissions' | 'ai' | 'chat';
 
 export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser }) => {
@@ -94,32 +102,38 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
   };
 
   const menuItems = [
-    // Joy & Bond Wing
-    { id: 'arena', label: 'ساحة التحديات', icon: <Swords size={20} />, category: 'جناح المتعة والتواصل' },
-    { id: 'romance', label: 'صالون الرومانسية', icon: <Heart size={20} />, category: 'جناح المتعة والتواصل' },
-    { id: 'gratitude', label: 'جدار الامتنان', icon: <Smile size={20} />, category: 'جناح المتعة والتواصل' },
-    { id: 'haptic', label: 'بوابة الهمس', icon: <Fingerprint size={20} />, category: 'جناح المتعة والتواصل' },
-    { id: 'conflict', label: 'غرفة التفاهم', icon: <Shield size={20} />, category: 'جناح المتعة والتواصل' },
+    // Relationship & Connection
+    { id: 'gratitude', label: 'سجل المودة', icon: <Smile size={20} />, category: 'جسور المودة والتواصل' },
+    { id: 'romance', label: 'صالون الرومانسية', icon: <Heart size={20} />, category: 'جسور المودة والتواصل' },
+    { id: 'dates', label: 'اقتراحات السهرات', icon: <Sparkles size={20} />, category: 'جسور المودة والتواصل' },
+    { id: 'journal', label: 'يوميات الكوكب', icon: <Book size={20} />, category: 'جسور المودة والتواصل' },
+    { id: 'quiz', label: 'لغات الحب', icon: <Bot size={20} />, category: 'جسور المودة والتواصل' },
+    { id: 'haptic', label: 'بوابة الهمس', icon: <Fingerprint size={20} />, category: 'جسور المودة والتواصل' },
+    { id: 'conflict', label: 'غرفة التفاهم', icon: <Shield size={20} />, category: 'جسور المودة والتواصل' },
     
-    // Enlightenment Wing
-    { id: 'knowledge', label: 'استوديو المعرفة', icon: <Library size={20} />, category: 'جناح العقل والهوايات' },
-    { id: 'focus', label: 'وضع التركيز', icon: <Zap size={20} />, category: 'جناح العقل والهوايات' },
-    { id: 'growth', label: 'مسار النمو', icon: <TrendingUp size={20} />, category: 'جناح العقل والهوايات' },
-    { id: 'capsule', label: 'كبسولة الزمن', icon: <History size={20} />, category: 'جناح العقل والهوايات' },
-    { id: 'travel', label: 'مخطط الرحلات', icon: <Plane size={20} />, category: 'جناح العقل والهوايات' },
-    { id: 'family', label: 'مشروع العائلة', icon: <Baby size={20} />, category: 'جناح العقل والهوايات' },
-    
-    // Core Systems
-    { id: 'system', label: 'لوحة القيادة', icon: <LayoutDashboard size={20} />, category: 'المنظومة المركزية' },
-    { id: 'ledger', label: 'المحرك المالي', icon: <Wallet size={20} />, category: 'المنظومة المركزية' },
-    { id: 'future_fund', label: 'خزينة الأصول', icon: <Target size={20} />, category: 'المنظومة المركزية' },
-    { id: 'tasks', label: 'محرك المهام', icon: <ListTodo size={20} />, category: 'المنظومة المركزية' },
-    { id: 'inventory', label: 'قائمة التوريد', icon: <Package size={20} />, category: 'المنظومة المركزية' },
-    { id: 'worship', label: 'المحراب', icon: <Sparkles size={20} />, category: 'المنظومة المركزية' },
-    { id: 'private', label: 'القبو الشخصي', icon: <Lock size={20} />, category: 'المنظومة المركزية' },
-    { id: 'health', label: 'السجل الصحي', icon: <Activity size={20} />, category: 'المنظومة المركزية' },
-    { id: 'hydration', label: 'واحة الارتواء', icon: <Droplets size={20} />, category: 'المنظومة المركزية' },
-    { id: 'vault', label: 'أرشيف المستندات', icon: <FileText size={20} />, category: 'المنظومة المركزية' },
+    // Core & Finance
+    { id: 'system', label: 'لوحة القيادة', icon: <LayoutDashboard size={20} />, category: 'المنظومة والمالية' },
+    { id: 'ledger', label: 'الميزانية والمالية', icon: <Wallet size={20} />, category: 'المنظومة والمالية' },
+    { id: 'future_fund', label: 'خزينة الأصول', icon: <Target size={20} />, category: 'المنظومة والمالية' },
+    { id: 'tasks', label: 'محرك المهام', icon: <ListTodo size={20} />, category: 'إدارة الحياة اليومية' },
+    { id: 'inventory', label: 'قائمة التوريد', icon: <Package size={20} />, category: 'إدارة الحياة اليومية' },
+    { id: 'worship', label: 'المحراب', icon: <Sparkles size={20} />, category: 'إدارة الحياة اليومية' },
+
+    // Growth & Health
+    { id: 'mood', label: 'غلاف المشاعر', icon: <Smile size={20} />, category: 'النمو والصحة' },
+    { id: 'health', label: 'السجل الصحي', icon: <Activity size={20} />, category: 'النمو والصحة' },
+    { id: 'hydration', label: 'واحة الارتواء', icon: <Droplets size={20} />, category: 'النمو والصحة' },
+    { id: 'growth', label: 'مسار النمو', icon: <TrendingUp size={20} />, category: 'النمو والصحة' },
+    { id: 'knowledge', label: 'استوديو المعرفة', icon: <GraduationCap size={20} />, category: 'النمو والصحة' },
+    { id: 'focus', label: 'وضع التركيز', icon: <Zap size={20} />, category: 'النمو والصحة' },
+    { id: 'arena', label: 'ساحة التحديات', icon: <Swords size={20} />, category: 'النمو والصحة' },
+
+    // Future & Private
+    { id: 'family', label: 'مشروع العائلة', icon: <Baby size={20} />, category: 'المستقبل والخصوصية' },
+    { id: 'travel', label: 'مخطط الرحلات', icon: <Plane size={20} />, category: 'المستقبل والخصوصية' },
+    { id: 'capsule', label: 'كبسولة الزمن', icon: <History size={20} />, category: 'المستقبل والخصوصية' },
+    { id: 'vault', label: 'أرشيف المستندات', icon: <FileText size={20} />, category: 'المستقبل والخصوصية' },
+    { id: 'private', label: 'القبو الشخصي', icon: <Lock size={20} />, category: 'المستقبل والخصوصية' },
   ];
 
   const renderView = () => {
@@ -143,6 +157,10 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
       case 'haptic': return <HapticPresence />;
       case 'gratitude': return <GratitudeFeed />;
       case 'conflict': return <ConflictRoom />;
+      case 'mood': return <MoodTracker />;
+      case 'journal': return <SharedJournal />;
+      case 'quiz': return <LoveLanguageQuiz />;
+      case 'dates': return <DateNightAI />;
       case 'capsule': return <TimeCapsule />;
       case 'travel': return <TravelPlanner />;
       case 'family': return <FutureFamily />;
@@ -177,7 +195,7 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
             </button>
           </div>
           
-          {['جناح المتعة والتواصل', 'جناح العقل والهوايات', 'المنظومة المركزية'].map(cat => (
+          {['جسور المودة والتواصل', 'المنظومة والمالية', 'إدارة الحياة اليومية', 'النمو والصحة', 'المستقبل والخصوصية'].map(cat => (
             <div key={cat} className="space-y-2">
               <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-40 px-2">{cat}</h3>
               <div className="space-y-1">
@@ -218,18 +236,18 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
       {/* Main Mobile-First Container */}
       <div className="flex-1 flex flex-col max-w-md mx-auto lg:max-w-none lg:px-12 relative overflow-hidden">
         {/* Header */}
-        <header className="p-6 flex justify-between items-center z-50 lg:py-8 lg:px-0">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 p-6 flex justify-between items-center z-50 bg-[var(--color-bg-deep)]/80 backdrop-blur-xl border-b border-[var(--color-border)]/20 lg:py-8 lg:px-0 lg:bg-transparent lg:backdrop-blur-none lg:border-none">
+          <div className="flex items-center gap-4">
             <button 
               onClick={() => setIsMenuOpen(true)}
-              className="w-10 h-10 rounded-xl glass flex items-center justify-center text-[var(--color-primary)] lg:hidden"
+              className="w-12 h-12 rounded-2xl glass flex items-center justify-center text-[var(--color-primary)] lg:hidden border border-[var(--color-border)]/40 shadow-xl"
             >
               <Menu size={24} />
             </button>
             <div className="lg:hidden">
-              <h1 className="text-xl font-black tracking-tighter">كوكب</h1>
+              <h1 className="text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)]">كوكب</h1>
               <div className="flex items-center gap-1.5">
-                <div className={`w-1.5 h-1.5 rounded-full ${partnerStatus?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
+                <div className={`w-2 h-2 rounded-full ${partnerStatus?.status === 'online' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
                 <span className="text-[10px] font-bold opacity-60">
                   {partnerStatus?.status === 'online' ? 'الشريك متصل' : 'الشريك غير متصل'}
                 </span>
@@ -376,7 +394,7 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
                     <span className="text-sm font-bold">الرئيسية</span>
                   </button>
                 </div>
-                {['جناح المتعة والتواصل', 'جناح العقل والهوايات', 'المنظومة المركزية'].map(cat => (
+                {['جسور المودة والتواصل', 'المنظومة والمالية', 'إدارة الحياة اليومية', 'النمو والصحة', 'المستقبل والخصوصية'].map(cat => (
                   <div key={cat} className="space-y-3">
                     <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-40 px-2">{cat}</h3>
                     <div className="space-y-1">
@@ -416,9 +434,9 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-6 z-40 lg:hidden">
-        <div className="glass rounded-3xl p-2 flex justify-between items-center shadow-2xl shadow-[var(--color-shadow)]">
+        <div className="glass rounded-[32px] p-2 flex justify-between items-center shadow-2xl shadow-black/40 border border-[var(--color-border)]/50 backdrop-blur-2xl">
           <TabItem 
-            icon={<Heart size={24} />} 
+            icon={<LayoutDashboard size={24} />} 
             label="الرئيسية" 
             active={activeTab === 'home'} 
             onClick={() => setActiveTab('home')}
@@ -429,16 +447,24 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
             active={activeTab === 'inventory'} 
             onClick={() => setActiveTab('inventory')}
           />
-          <div className="relative -top-8">
+          <div className="relative -top-10">
             <button 
               onClick={handlePresencePulse}
-              className={`w-16 h-16 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white shadow-xl shadow-[var(--color-shadow)] flex items-center justify-center hover:scale-110 transition-transform duration-300 ${presenceActive ? 'animate-ping' : ''}`}
+              className={`w-20 h-20 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white shadow-2xl shadow-[var(--color-primary)]/40 flex items-center justify-center hover:scale-110 transition-transform duration-300 border-4 border-[var(--color-bg-deep)] ${presenceActive ? 'animate-pulse' : ''}`}
             >
-              <Fingerprint size={32} />
+              <Fingerprint size={36} />
+              {presenceActive && (
+                <motion.div 
+                  initial={{ scale: 1, opacity: 0.5 }}
+                  animate={{ scale: 2, opacity: 0 }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="absolute inset-0 rounded-full bg-white"
+                />
+              )}
             </button>
           </div>
           <TabItem 
-            icon={<MessageSquare size={24} />} 
+            icon={<Bot size={24} />} 
             label="المستشار" 
             active={activeTab === 'chat'} 
             onClick={() => setActiveTab('chat')}
@@ -465,78 +491,65 @@ const TabItem: React.FC<{ icon: React.ReactNode; label: string; active: boolean;
   </button>
 );
 
+import { PlanetWeather } from '../features/PlanetWeather';
+
 const HomeView: React.FC<{ setActiveTab: (tab: ViewID) => void }> = ({ setActiveTab }) => {
-  const { planetHealth, populateTestData } = usePlanet();
+  const { planetHealth, populateTestData, currentUser } = usePlanet();
   
   return (
     <div className="space-y-8">
-      {/* Planet Health Card */}
-      <motion.div 
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="glass-card p-8 text-center relative overflow-hidden group"
-      >
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-50" />
-        <div className="space-y-4 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest">
-            <Sparkles size={12} /> حالة الكوكب: مستقرة
-          </div>
-          <div className="relative inline-block">
-            <div className="text-7xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-white/20">
-              {planetHealth.score}%
-            </div>
-            <motion.div 
-              animate={{ rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute -inset-4 border border-dashed border-[var(--color-primary)]/20 rounded-full"
-            />
-          </div>
-          <p className="text-sm text-[var(--color-text-secondary)] max-w-[200px] mx-auto leading-relaxed">
-            كوكبنا يزدهر اليوم. التوازن بين الصحة والمالية والروحانيات في أفضل حالاته.
-          </p>
-        </div>
-      </motion.div>
-
-      {/* Pillars Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        <PillarCard label="اللوجستيات" value={planetHealth.breakdown.logistics} color="blue" />
-        <PillarCard label="المالية" value={planetHealth.breakdown.finance} color="emerald" />
-        <PillarCard label="الروحانيات" value={planetHealth.breakdown.spiritual} color="purple" />
-        <PillarCard label="الصحة" value={planetHealth.breakdown.health} color="rose" />
+      {/* Welcome Section */}
+      <div className="space-y-1">
+        <h2 className="text-3xl font-black tracking-tight">أهلاً، {currentUser === 'F' ? 'فهد' : 'بشرى'} 👋</h2>
+        <p className="text-sm text-[var(--color-text-secondary)] font-medium">إليك ملخص حالة كوكبك اليوم</p>
       </div>
 
-      {/* Quick Actions */}
+      {/* Planet Weather Hero */}
+      <PlanetWeather />
+
+      {/* Pillars Grid - Bento Style */}
+      <div className="grid grid-cols-2 gap-4">
+        <PillarCard label="اللوجستيات" value={planetHealth.breakdown.logistics} color="blue" icon={<Package size={16} />} />
+        <PillarCard label="المالية" value={planetHealth.breakdown.finance} color="emerald" icon={<Wallet size={16} />} />
+        <PillarCard label="الروحانيات" value={planetHealth.breakdown.spiritual} color="purple" icon={<Sparkles size={16} />} />
+        <PillarCard label="الصحة" value={planetHealth.breakdown.health} color="rose" icon={<Activity size={16} />} />
+      </div>
+
+      {/* Quick Actions - Horizontal Scroll on Mobile */}
       <div className="space-y-4">
-        <h3 className="text-xs font-bold uppercase tracking-widest opacity-60 px-1">إجراءات سريعة</h3>
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="flex justify-between items-center px-1">
+          <h3 className="text-xs font-bold uppercase tracking-widest opacity-60">إجراءات سريعة</h3>
+          <button onClick={populateTestData} className="text-[10px] font-bold text-[var(--color-primary)] hover:underline">تحديث البيانات</button>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-6 px-6">
           <QuickAction 
-            icon={<Plus size={18} />} 
-            label="إضافة مصروف" 
+            icon={<Plus size={20} />} 
+            label="مصروف" 
             color="blue" 
             onClick={() => setActiveTab('ledger')}
           />
           <QuickAction 
-            icon={<ListTodo size={18} />} 
-            label="مهمة جديدة" 
+            icon={<ListTodo size={20} />} 
+            label="مهمة" 
             color="emerald" 
             onClick={() => setActiveTab('tasks')}
           />
           <QuickAction 
-            icon={<Sparkles size={18} />} 
-            label="بدء جلسة ذكر" 
+            icon={<Sparkles size={20} />} 
+            label="ذكر" 
             color="purple" 
             onClick={() => setActiveTab('worship')}
           />
           <QuickAction 
-            icon={<Bot size={18} />} 
-            label="استشارة ذكية" 
+            icon={<Bot size={20} />} 
+            label="استشارة" 
             color="rose" 
             onClick={() => setActiveTab('ai')}
           />
           <QuickAction 
-            icon={<Zap size={18} />} 
-            label="وضع التجربة" 
-            color="blue" 
+            icon={<Zap size={20} />} 
+            label="تجربة" 
+            color="amber" 
             onClick={() => populateTestData()}
           />
         </div>
@@ -547,26 +560,27 @@ const HomeView: React.FC<{ setActiveTab: (tab: ViewID) => void }> = ({ setActive
 
 const QuickAction: React.FC<{ icon: React.ReactNode; label: string; color: string; onClick: () => void }> = ({ icon, label, color, onClick }) => {
   const colorMap = {
-    blue: 'bg-blue-500/20 text-blue-500',
-    emerald: 'bg-emerald-500/20 text-emerald-500',
-    purple: 'bg-purple-500/20 text-purple-500',
-    rose: 'bg-rose-500/20 text-rose-500'
+    blue: 'bg-blue-500/20 text-blue-500 border-blue-500/20',
+    emerald: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/20',
+    purple: 'bg-purple-500/20 text-purple-500 border-purple-500/20',
+    rose: 'bg-rose-500/20 text-rose-500 border-rose-500/20',
+    amber: 'bg-amber-500/20 text-amber-500 border-amber-500/20'
   };
 
   return (
     <button 
       onClick={onClick}
-      className="glass p-4 rounded-2xl flex items-center gap-3 hover:bg-[var(--color-primary)]/10 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group"
+      className="flex-shrink-0 w-24 h-24 glass-card flex flex-col items-center justify-center gap-2 hover:bg-[var(--color-primary)]/10 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] group border border-[var(--color-border)]/40"
     >
-      <div className={`w-10 h-10 rounded-xl ${colorMap[color as keyof typeof colorMap]} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+      <div className={`w-10 h-10 rounded-2xl ${colorMap[color as keyof typeof colorMap]} flex items-center justify-center group-hover:rotate-12 transition-transform border`}>
         {icon}
       </div>
-      <span className="text-xs font-bold">{label}</span>
+      <span className="text-[10px] font-bold tracking-tight">{label}</span>
     </button>
   );
 };
 
-const PillarCard: React.FC<{ label: string; value: number; color: 'blue' | 'emerald' | 'purple' | 'rose' }> = ({ label, value, color }) => {
+const PillarCard: React.FC<{ label: string; value: number; color: 'blue' | 'emerald' | 'purple' | 'rose'; icon: React.ReactNode }> = ({ label, value, color, icon }) => {
   const colorMap = {
     blue: 'bg-blue-500 text-blue-500',
     emerald: 'bg-emerald-500 text-emerald-500',
@@ -575,17 +589,26 @@ const PillarCard: React.FC<{ label: string; value: number; color: 'blue' | 'emer
   };
 
   return (
-    <div className="glass-card p-4 space-y-3">
-      <div className="flex justify-between items-center">
-        <span className="text-[10px] font-bold opacity-60">{label}</span>
-        <span className={`text-xs font-black ${colorMap[color].split(' ')[1]}`}>{value}%</span>
+    <div className="glass-card p-5 space-y-4 relative overflow-hidden group">
+      <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+        {React.cloneElement(icon as React.ReactElement, { size: 64 })}
       </div>
-      <div className="h-1.5 w-full bg-[var(--color-bg-surface)] rounded-full overflow-hidden">
-        <motion.div 
-          initial={{ width: 0 }}
-          animate={{ width: `${value}%` }}
-          className={`h-full ${colorMap[color].split(' ')[0]}`}
-        />
+      <div className="flex justify-between items-start relative z-10">
+        <div className={`p-2 rounded-lg ${colorMap[color].split(' ')[0]}/10 ${colorMap[color].split(' ')[1]}`}>
+          {icon}
+        </div>
+        <span className={`text-lg font-black ${colorMap[color].split(' ')[1]}`}>{value}%</span>
+      </div>
+      <div className="space-y-2 relative z-10">
+        <span className="text-[10px] font-bold uppercase tracking-widest opacity-50">{label}</span>
+        <div className="h-1.5 w-full bg-[var(--color-bg-surface)] rounded-full overflow-hidden">
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: `${value}%` }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className={`h-full ${colorMap[color].split(' ')[0]}`}
+          />
+        </div>
       </div>
     </div>
   );

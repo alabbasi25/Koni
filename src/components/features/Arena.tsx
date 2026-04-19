@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Swords, Trophy, Timer, Play, CheckCircle2, XCircle, Plus, Zap, Flame } from 'lucide-react';
+import { Swords, Trophy, Timer, Play, CheckCircle2, XCircle, Plus, Zap, Flame, Activity, Heart, ArrowRight } from 'lucide-react';
 import { usePlanet } from '../../context/KokabContext';
 
 export const Arena: React.FC = () => {
-  const { challenges, proposeChallenge, acceptChallenge, completeChallenge, currentUser, streaks } = usePlanet();
+  const { challenges, proposeChallenge, acceptChallenge, completeChallenge, currentUser, streaks, fitnessBattle, updateFitnessBattle } = usePlanet();
   const [showAdd, setShowAdd] = useState(false);
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', points: 10, duration: 30 });
   const [now, setNow] = useState(Date.now());
@@ -38,6 +38,61 @@ export const Arena: React.FC = () => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+      {/* Fitness Battle Mode (Progressive Reveal) */}
+      <section className="glass-card-dark p-6 border-emerald-500/20 bg-emerald-500/5 space-y-6">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center">
+              <Activity size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-black">معركة اللياقة (Fitness Battle)</h3>
+              <p className="text-[10px] opacity-60">تحدي الخطوات والسعرات الحي</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 text-[8px] font-black text-emerald-500 uppercase tracking-widest">
+            <Flame size={10} className="animate-pulse" /> معركة نشطة
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-8 relative">
+          {/* VS Divider */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900 border border-white/10 flex items-center justify-center text-[10px] font-black z-10">VS</div>
+          
+          <div className="space-y-3 text-center">
+            <div className="text-[10px] font-bold opacity-50">فهد</div>
+            <div className="text-2xl font-black text-emerald-500">{fitnessBattle.F.steps.toLocaleString()}</div>
+            <div className="text-[8px] opacity-40 uppercase">خطوة</div>
+            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${(fitnessBattle.F.steps / 10000) * 100}%` }}
+                className="h-full bg-emerald-500"
+              />
+            </div>
+          </div>
+          <div className="space-y-3 text-center">
+            <div className="text-[10px] font-bold opacity-50">بشرى</div>
+            <div className="text-2xl font-black text-blue-500">{fitnessBattle.B.steps.toLocaleString()}</div>
+            <div className="text-[8px] opacity-40 uppercase">خطوة</div>
+            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${(fitnessBattle.B.steps / 10000) * 100}%` }}
+                className="h-full bg-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        <button 
+          onClick={() => updateFitnessBattle(currentUser, fitnessBattle[currentUser].steps + 500)}
+          className="w-full py-3 rounded-xl bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
+        >
+          <Zap size={16} /> إضافة ٥٠٠ خطوة للمنافسة
+        </button>
+      </section>
+
       {/* Streak Section */}
       <div className="glass-card-dark p-6 flex items-center justify-between overflow-hidden relative">
         <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">

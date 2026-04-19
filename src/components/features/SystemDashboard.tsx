@@ -8,12 +8,23 @@ import {
   TrendingUp, 
   AlertCircle,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Zap,
+  Moon,
+  Flame,
+  Power
 } from 'lucide-react';
-import { useKokab } from '../../context/KokabContext';
+import { usePlanet } from '../../context/KokabContext';
+
+const THEMES = [
+  { id: 'default', name: 'منتصف الليل', class: 'bg-[#0f172a]', mode: 'غامق' },
+  { id: 'emerald', name: 'الزمرد العميق', class: 'bg-[#022c22]', mode: 'غامق' },
+  { id: 'gold', name: 'ذهب الصحراء', class: 'bg-[#fffbeb]', mode: 'فاتح' },
+  { id: 'rose', name: 'زهور الربيع', class: 'bg-[#fff1f2]', mode: 'فاتح' },
+];
 
 export const SystemDashboard: React.FC = () => {
-  const { planetHealth, tasks, transactions, vitals, currentUser, inventory, calendar } = useKokab();
+  const { planetHealth, tasks, transactions, vitals, currentUser, inventory, calendar, emergencyMode, toggleEmergencyMode, theme, setTheme } = usePlanet();
 
   const pendingTasks = tasks.filter(t => t.status === 'pending');
   const urgentTasks = pendingTasks.filter(t => t.priority === 'urgent' || t.priority === 'high');
@@ -22,7 +33,7 @@ export const SystemDashboard: React.FC = () => {
   const partnerVitals = vitals[partner];
 
   const totalSpent = transactions.reduce((acc, t) => acc + t.amount, 0);
-  const budget = 15000; // Monthly income baseline
+  const budget = 15000;
   const budgetPercent = Math.max(0, Math.min(100, ((budget - totalSpent) / budget) * 100));
 
   const inventoryPercent = inventory.length > 0 
@@ -40,6 +51,52 @@ export const SystemDashboard: React.FC = () => {
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
+      {/* Theme Selection */}
+      <section className="glass-card p-6 space-y-4">
+        <h3 className="text-sm font-black">غلاف الكوكب (الثيمات)</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {THEMES.map(t => (
+            <button
+              key={t.id}
+              onClick={() => setTheme(t.id)}
+              className={`p-4 rounded-2xl border-2 transition-all flex flex-col gap-2 items-center ${theme === t.id ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 scale-105 shadow-xl' : 'border-white/5 hover:bg-white/5'}`}
+            >
+              <div className={`w-8 h-8 rounded-full ${t.class} border border-white/20`} />
+              <div className="text-center">
+                <div className="text-[10px] font-black">{t.name}</div>
+                <div className="text-[8px] opacity-40 uppercase tracking-tighter">{t.mode}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Crisis & Rest Toggle (Emergency Mode) */}
+      <section className={`glass-card p-6 border-2 transition-all duration-500 ${emergencyMode ? 'border-rose-500 bg-rose-500/10 shadow-[0_0_30px_rgba(244,63,94,0.2)]' : 'border-emerald-500/20 bg-emerald-500/5'}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${emergencyMode ? 'bg-rose-500 text-white animate-pulse' : 'bg-emerald-500/20 text-emerald-500'}`}>
+              {emergencyMode ? <Flame size={24} /> : <Moon size={24} />}
+            </div>
+            <div>
+              <h3 className="text-sm font-black">{emergencyMode ? 'وضع الأزمة نشط' : 'وضع الراحة والهدوء'}</h3>
+              <p className="text-[10px] opacity-60">{emergencyMode ? 'تم تجميد كافة المهام غير الضرورية' : 'النظام يعمل بكفاءة طبيعية'}</p>
+            </div>
+          </div>
+          <button 
+            onClick={toggleEmergencyMode}
+            className={`w-14 h-8 rounded-full relative transition-colors ${emergencyMode ? 'bg-rose-500' : 'bg-slate-700'}`}
+          >
+            <motion.div 
+              animate={{ x: emergencyMode ? 24 : 4 }}
+              className="absolute top-1 w-6 h-6 rounded-full bg-white shadow-lg flex items-center justify-center"
+            >
+              <Power size={12} className={emergencyMode ? 'text-rose-500' : 'text-slate-400'} />
+            </motion.div>
+          </button>
+        </div>
+      </section>
+
       {/* System Health Overview */}
       <section className="grid grid-cols-2 gap-4">
         <div className="glass-card p-6 border-l-4 border-l-[var(--color-primary)]">

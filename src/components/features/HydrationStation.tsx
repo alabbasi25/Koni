@@ -4,7 +4,7 @@ import { Droplets, Plus, GlassWater, Trophy, History, AlertCircle } from 'lucide
 import { usePlanet } from '../../context/KokabContext';
 
 export const HydrationStation: React.FC = () => {
-  const { hydrationLogs, logHydration, currentUser } = usePlanet();
+  const { hydrationLogs, logHydration, currentUser, nudgeHydration, smartHydrationEnabled, toggleSmartHydration } = usePlanet();
 
   const todayLogs = hydrationLogs.filter(l => {
     const d = new Date(l.timestamp);
@@ -75,24 +75,45 @@ export const HydrationStation: React.FC = () => {
               <p className="text-xs opacity-60">شرب {partnerTotal} مل حتى الآن</p>
             </div>
           </div>
-          <div className="text-right">
+          <div className="flex flex-col items-end gap-2 text-right">
             <div className={`text-[10px] font-black px-3 py-1 rounded-full ${partnerTotal < 1000 ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
               {partnerTotal < 1000 ? 'يحتاج للماء' : 'مرتوي'}
             </div>
+            {partnerTotal < 1000 && (
+              <button 
+                onClick={() => nudgeHydration()}
+                className="px-3 py-1 rounded-lg bg-blue-500 text-white text-[9px] font-black hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/20"
+              >
+                تذكير الشريك!
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex gap-4 items-center">
-        <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-500 flex items-center justify-center">
-          <AlertCircle size={28} />
+      <div className={`p-6 rounded-2xl border transition-all duration-500 flex gap-4 items-center justify-between ${smartHydrationEnabled ? 'bg-amber-500/10 border-amber-500/30' : 'bg-white/5 border-white/10 opacity-60'}`}>
+        <div className="flex gap-4 items-center">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${smartHydrationEnabled ? 'bg-amber-500/20 text-amber-500' : 'bg-white/10 text-white/40'}`}>
+            <AlertCircle size={28} />
+          </div>
+          <div>
+            <h3 className={`text-sm font-bold transition-colors ${smartHydrationEnabled ? 'text-amber-500' : 'text-white/60'}`}>تذكير ذكي</h3>
+            <p className="text-[10px] leading-relaxed opacity-70">
+              {smartHydrationEnabled 
+                ? 'سنقوم بتذكير شريكك بشرب الماء إذا لاحظنا انخفاض معدل ارتواءه اليوم لضمان صحته.'
+                : 'التنبيهات التلقائية متوقفة حالياً. يمكنك تفعيلها للمتابعة التلقائية.'}
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-sm font-bold text-amber-500">تذكير ذكي</h3>
-          <p className="text-[10px] leading-relaxed text-amber-500/70">
-            سنقوم بتذكير شريكك بشرب الماء إذا لاحظنا انخفاض معدل ارتواءه اليوم لضمان صحته.
-          </p>
-        </div>
+        <button 
+          onClick={toggleSmartHydration}
+          className={`relative w-12 h-6 rounded-full transition-colors duration-300 ${smartHydrationEnabled ? 'bg-amber-500' : 'bg-white/10'}`}
+        >
+          <motion.div 
+            animate={{ x: smartHydrationEnabled ? 26 : 2 }}
+            className="absolute top-1 left-0 w-4 h-4 rounded-full bg-white shadow-sm"
+          />
+        </button>
       </div>
     </motion.div>
   );

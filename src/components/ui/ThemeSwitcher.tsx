@@ -1,5 +1,6 @@
 import React from 'react';
 import { Moon, Sun, Trees, Flower2 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { Theme } from '../../types';
 
 interface ThemeSwitcherProps {
@@ -8,27 +9,38 @@ interface ThemeSwitcherProps {
 }
 
 export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ currentTheme, setTheme }) => {
-  const themes: { id: Theme; icon: React.ReactNode; label: string }[] = [
-    { id: 'midnight', icon: <Moon size={18} />, label: 'مجرة' },
-    { id: 'emerald', icon: <Trees size={18} />, label: 'زمرد' },
-    { id: 'gold', icon: <Sun size={18} />, label: 'ذهب' },
-    { id: 'rose', icon: <Flower2 size={18} />, label: 'ورد' },
+  const themes: { id: Theme; icon: React.ReactNode; label: string; color: string }[] = [
+    { id: 'midnight', icon: <Moon size={20} />, label: 'ليلة القهوة', color: 'bg-[#8b5cf6]' },
+    { id: 'emerald', icon: <Trees size={20} />, label: 'الغابة العميقة', color: 'bg-[#10B981]' },
+    { id: 'gold', icon: <Sun size={20} />, label: 'شروق الصحراء', color: 'bg-[#b45309]' },
+    { id: 'rose', icon: <Flower2 size={20} />, label: 'سحاب وردي', color: 'bg-[#e11d48]' },
   ];
 
   return (
-    <div className="flex gap-2 p-1 bg-[var(--color-bg-surface)] rounded-2xl border border-[var(--color-border)]">
+    <div className="grid grid-cols-2 gap-3">
       {themes.map((t) => (
         <button
           key={t.id}
           onClick={() => setTheme(t.id)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 ${
+          className={`relative flex items-center gap-4 p-4 rounded-[2rem] transition-all duration-500 overflow-hidden group ${
             currentTheme === t.id
-              ? 'bg-[var(--color-primary)] text-white shadow-md'
-              : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-card)]'
+              ? 'bg-[var(--color-bg-surface)] border-2 border-[var(--color-primary)] shadow-2xl shadow-[var(--color-shadow)]'
+              : 'glass opacity-60 border-white/5 hover:border-white/20 hover:opacity-100'
           }`}
         >
-          {t.icon}
-          <span className="text-xs font-bold hidden sm:block">{t.label}</span>
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6 ${t.color}`}>
+            {t.icon}
+          </div>
+          <div className="text-right">
+            <div className="text-sm font-black">{t.label}</div>
+            <div className="text-[10px] font-bold opacity-40 uppercase tracking-widest">ثيم النظام</div>
+          </div>
+          {currentTheme === t.id && (
+            <motion.div 
+              layoutId="active-theme"
+              className="absolute left-4 w-2 h-2 rounded-full bg-[var(--color-primary)] shadow-[0_0_10px_var(--color-primary)]"
+            />
+          )}
         </button>
       ))}
     </div>

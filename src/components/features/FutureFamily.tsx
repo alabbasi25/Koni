@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Baby, Wallet, Heart, Sparkles, Plus, X, GraduationCap, ClipboardList, TrendingUp } from 'lucide-react';
+import { Baby, Wallet, Heart, Sparkles, Plus, X, GraduationCap, ClipboardList, TrendingUp, Image as ImageIcon, MessageCircle, Share2 } from 'lucide-react';
 import { usePlanet } from '../../context/KokabContext';
 import { ModernInput } from '../ui/ModernInput';
 
 export const FutureFamily: React.FC = () => {
-  const { family, updateFamily, currentUser, addChildReport } = usePlanet();
+  const { family, updateFamily, currentUser, addChildReport, addChildMilestone } = usePlanet();
   const [showAddName, setShowAddName] = useState(false);
   const [showEditVision, setShowEditVision] = useState(false);
   const [showAddReport, setShowAddReport] = useState(false);
+  const [showAddMilestone, setShowAddMilestone] = useState(false);
   const [newName, setNewName] = useState('');
   const [newVision, setNewVision] = useState(family.notes || '');
   const [newReport, setNewReport] = useState({ childName: '', subject: '', status: 'good' as any, notes: '' });
+  const [newMilestone, setNewMilestone] = useState({ childId: 'E' as any, title: '', content: '', imageUrl: '' });
 
   const isBushra = currentUser === 'B'; // Bushra is the primary education manager
 
@@ -30,12 +32,80 @@ export const FutureFamily: React.FC = () => {
     setShowEditVision(false);
   };
 
+  const handleAddMilestone = (e: React.FormEvent) => {
+    e.preventDefault();
+    addChildMilestone(newMilestone);
+    setShowAddMilestone(false);
+    setNewMilestone({ childId: 'E', title: '', content: '', imageUrl: '' });
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
       <div className="space-y-2">
         <h2 className="text-2xl font-black">مشروع العائلة</h2>
         <p className="text-sm text-[var(--color-text-secondary)]">تخطيط هادئ لمستقبل يملؤه الحب</p>
       </div>
+
+      {/* Kids Milestone Timeline - Instagram Style */}
+      <section className="space-y-4">
+        <div className="flex justify-between items-center px-1">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--color-text-secondary)]">سجل اللحظات السعيدة</h3>
+          <button 
+            onClick={() => setShowAddMilestone(true)}
+            className="p-2 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)] transition-colors"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+        
+        <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-6 px-6">
+          {family.milestones?.map(milestone => (
+            <motion.div 
+              key={milestone.id}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="flex-shrink-0 w-72 glass-card overflow-hidden flex flex-col"
+            >
+              <div className="relative h-72 bg-black/20">
+                {milestone.imageUrl ? (
+                  <img src={milestone.imageUrl} alt={milestone.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white/10">
+                    <ImageIcon size={48} />
+                  </div>
+                )}
+                <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-[8px] font-black text-white uppercase tracking-widest">
+                  {milestone.childId === 'E' ? 'إياد' : milestone.childId === 'W' ? 'وسام' : 'آسر'}
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <h4 className="text-sm font-black">{milestone.title}</h4>
+                  <span className="text-[8px] opacity-40">{new Date(milestone.timestamp).toLocaleDateString('ar-EG')}</span>
+                </div>
+                <p className="text-[10px] opacity-70 leading-relaxed line-clamp-2">{milestone.content}</p>
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <div className="flex -space-x-2 rtl:space-x-reverse">
+                    {['F', 'B'].map(uid => (
+                      <div key={uid} className="w-6 h-6 rounded-full border-2 border-[var(--color-bg-card)] overflow-hidden">
+                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${uid === 'F' ? 'Fahad' : 'Bushra'}`} alt="User" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-3 text-[var(--color-text-secondary)]">
+                    <Heart size={16} className="hover:text-rose-500 cursor-pointer transition-colors" />
+                    <MessageCircle size={16} className="hover:text-blue-500 cursor-pointer transition-colors" />
+                    <Share2 size={16} className="hover:text-emerald-500 cursor-pointer transition-colors" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+          {(!family.milestones || family.milestones.length === 0) && (
+            <div className="w-full py-12 text-center glass-card opacity-40 text-xs italic">لا توجد لحظات مسجلة بعد. ابدأ بتوثيق ذكرياتكم.</div>
+          )}
+        </div>
+      </section>
 
       <div className="grid grid-cols-1 gap-4">
         <div className="glass-card p-6 space-y-4">

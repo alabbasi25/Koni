@@ -2,6 +2,8 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
+import { Server } from 'socket.io';
+import http from 'http';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,6 +11,10 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   const PORT = 3000;
+  const httpServer = http.createServer(app);
+  const io = new Server(httpServer, {
+    cors: { origin: "*" }
+  });
 
   app.use(express.json());
 
@@ -20,11 +26,70 @@ async function startServer() {
   // Mock database state (In-memory for demo)
   let appState = {
     lastUpdate: Date.now(),
-    message: "Welcome to Kokab Backend"
+    message: "Welcome to Kokab Backend",
+    tasbeeh: { F: 0, B: 0 }
   };
+
+  io.on('connection', (socket) => {
+    console.log('Client connected:', socket.id);
+
+    socket.on('tasbeeh:sync', (data) => {
+      appState.tasbeeh = { ...appState.tasbeeh, ...data };
+      io.emit('tasbeeh:updated', appState.tasbeeh);
+    });
+
+    socket.on('sync:action', (data) => {
+      // Generic sync action (haptic feedback, notifications)
+      socket.broadcast.emit('sync:event', data);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Client disconnected');
+    });
+  });
 
   app.get('/api/state', (req, res) => {
     res.json(appState);
+  });
+
+  // OAuth & Fitness Routes
+  app.get('/api/auth/google/url', (req, res) => {
+    const params = new URLSearchParams({
+      client_id: process.env.VITE_GOOGLE_CLIENT_ID || 'dummy_id',
+      redirect_uri: `${req.protocol}://${req.get('host')}/auth/callback`,
+      response_type: 'code',
+      scope: 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read',
+      access_type: 'offline',
+      prompt: 'consent'
+    });
+    res.json({ url: `https://accounts.google.com/o/oauth2/v2/auth?${params}` });
+  });
+
+  app.get('/auth/callback', (req, res) => {
+    res.send(`
+      <html>
+        <body style="background: #09090b; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; direction: rtl;">
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({ type: 'OAUTH_AUTH_SUCCESS' }, '*');
+              window.close();
+            } else {
+              window.location.href = '/';
+            }
+          </script>
+          <div style="text-align: center;">
+            <p>تم الربط بنجاح! جاري العودة للكوكب...</p>
+          </div>
+        </body>
+      </html>
+    `);
+  });
+
+  app.get('/api/fitness/sync', (req, res) => {
+    // Mocking real sync logic - returning fresh data
+    const steps = 6000 + Math.floor(Math.random() * 4000);
+    const calories = 300 + Math.floor(Math.random() * 400);
+    res.json({ steps, calories });
   });
 
   app.post('/api/state', (req, res) => {
@@ -47,7 +112,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
+  httpServer.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
   });
 }

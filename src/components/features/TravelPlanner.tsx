@@ -15,9 +15,10 @@ import { useKokab } from '../../context/KokabContext';
 import { ModernInput } from '../ui/ModernInput';
 
 export const TravelPlanner: React.FC = () => {
-  const { travel, addTravelPlan } = useKokab();
+  const { travel, addTravelPlan, updateTravelPackingList, addPackingItem } = useKokab();
   const [showAdd, setShowAdd] = useState(false);
   const [newPlan, setNewPlan] = useState({ destination: '', budget: 0, startDate: '', endDate: '' });
+  const [newItem, setNewItem] = useState<{ [key: string]: string }>({});
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,6 +34,12 @@ export const TravelPlanner: React.FC = () => {
     setNewPlan({ destination: '', budget: 0, startDate: '', endDate: '' });
   };
 
+  const handleAddItem = (planId: string) => {
+    if (!newItem[planId]) return;
+    addPackingItem(planId, newItem[planId]);
+    setNewItem(prev => ({ ...prev, [planId]: '' }));
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -45,12 +52,14 @@ export const TravelPlanner: React.FC = () => {
           <h2 className="text-2xl font-black">مخطط الرحلات</h2>
           <p className="text-sm text-[var(--color-text-secondary)]">إدارة لوجستيات السفر والخرائط في مكان واحد</p>
         </div>
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={() => setShowAdd(true)}
           className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20"
         >
           <Plus size={24} />
-        </button>
+        </motion.button>
       </div>
 
       {travel.length > 0 ? (
@@ -98,14 +107,43 @@ export const TravelPlanner: React.FC = () => {
                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-secondary)] flex items-center gap-2">
                   <CheckSquare size={14} /> قائمة التعبئة
                 </h3>
-                <div className="space-y-2">
-                  {plan.packingList.length === 0 && <p className="text-[10px] opacity-40 italic">لا توجد أغراض مضافة...</p>}
-                  {plan.packingList.map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-[10px] font-bold">
-                      {item.packed ? <CheckSquare size={14} className="text-green-500" /> : <Square size={14} className="opacity-30" />}
-                      <span className={item.packed ? 'line-through opacity-50' : ''}>{item.item}</span>
-                    </div>
-                  ))}
+                <div className="space-y-3">
+                  {plan.packingList.length === 0 && <p className="text-[10px] opacity-40 italic text-center py-4">لا توجد أغراض مضافة...</p>}
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    {plan.packingList.map((item, i) => (
+                      <motion.div 
+                        key={i} 
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        onClick={() => updateTravelPackingList(plan.id, item.item, !item.packed)}
+                        className={`flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer ${item.packed ? 'bg-green-500/10 text-green-500' : 'bg-white/5 hover:bg-white/10'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          {item.packed ? <CheckSquare size={16} /> : <Square size={16} className="opacity-30" />}
+                          <span className={`text-[10px] font-bold ${item.packed ? 'line-through opacity-70' : ''}`}>{item.item}</span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                  
+                  <div className="pt-2 border-t border-white/5 flex gap-2">
+                    <input 
+                      type="text"
+                      placeholder="إضافة غرض..."
+                      value={newItem[plan.id] || ''}
+                      onChange={(e) => setNewItem(prev => ({ ...prev, [plan.id]: e.target.value }))}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddItem(plan.id)}
+                      className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[10px] outline-none"
+                    />
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleAddItem(plan.id)}
+                      className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-lg"
+                    >
+                      <Plus size={14} />
+                    </motion.button>
+                  </div>
                 </div>
               </div>
             </div>

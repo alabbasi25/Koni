@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { TrendingUp, CheckCircle, Target, Flame, Plus, X } from 'lucide-react';
+import { TrendingUp, CheckCircle, Target, Flame, Plus, X, Trophy } from 'lucide-react';
 import { usePlanet } from '../../context/KokabContext';
 import { ModernInput } from '../ui/ModernInput';
 
@@ -10,6 +10,8 @@ export const PersonalGrowth: React.FC = () => {
   const [newHabit, setNewHabit] = useState({ title: '', target: 10, unit: '', color: 'blue' as const });
 
   const myHabits = habits[currentUser] || [];
+  const completedToday = myHabits.filter(h => h.progress >= h.target).length;
+  const totalDailyProgress = myHabits.reduce((acc, h) => acc + Math.min(100, (h.progress / h.target) * 100), 0) / (myHabits.length || 1);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,18 +30,56 @@ export const PersonalGrowth: React.FC = () => {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
       <div className="flex justify-between items-center">
         <div className="space-y-2">
-          <h2 className="text-2xl font-black">متتبع النمو الشخصي</h2>
-          <p className="text-sm text-[var(--color-text-secondary)]">تطوير الذات هو وقود الكوكب</p>
+          <h2 className="text-2xl font-black">غراس الكوكب</h2>
+          <p className="text-sm text-[var(--color-text-secondary)]">تطوير الذات هو وقود الكوكب للحياة</p>
         </div>
-        <button 
+        <motion.button 
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           onClick={() => setShowAdd(true)}
           className="w-12 h-12 rounded-2xl bg-[var(--color-primary)] text-white flex items-center justify-center shadow-lg shadow-[var(--color-primary)]/20"
         >
           <Plus size={24} />
-        </button>
+        </motion.button>
       </div>
 
+      {/* Daily Summary Card */}
+      {myHabits.length > 0 && (
+        <div className="glass-card p-6 border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-transparent relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <Trophy size={80} />
+          </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="space-y-2">
+              <h3 className="text-sm font-black uppercase tracking-widest text-emerald-500">إنجازك اليومي</h3>
+              <div className="text-3xl font-black">{Math.round(totalDailyProgress)}%</div>
+              <p className="text-[10px] opacity-60 font-bold">لقد أتممت {completedToday} من أصل {myHabits.length} عادات إيجابية اليوم.</p>
+            </div>
+            <div className="w-16 h-16 rounded-full border-4 border-emerald-500/20 flex items-center justify-center relative">
+              <svg className="w-full h-full -rotate-90">
+                <circle
+                  cx="32" cy="32" r="28"
+                  fill="transparent"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  strokeDasharray={175.9}
+                  strokeDashoffset={175.9 - (175.9 * totalDailyProgress) / 100}
+                  className="text-emerald-500"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Flame size={20} className="text-orange-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-4">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-[10px] font-black uppercase tracking-widest opacity-40">قائمة العادات اليومية</h3>
+          <div className="text-[8px] font-bold opacity-30 uppercase tracking-widest">تحديث تلقائي كل ٢٤ ساعة</div>
+        </div>
         {myHabits.length === 0 && (
           <div className="p-12 text-center glass-card opacity-50">
             <Target size={48} className="mx-auto mb-4 opacity-20" />
@@ -77,12 +117,14 @@ export const PersonalGrowth: React.FC = () => {
               <div className="flex items-center gap-1 text-[10px] text-orange-500 font-bold">
                 <Flame size={12} /> {Math.floor((Date.now() - habit.lastUpdated) / 86400000) === 0 ? 'نشط اليوم' : 'بانتظار التحديث'}
               </div>
-              <button 
+              <motion.button 
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={() => updateHabitProgress(habit.id, habit.progress + 1)}
                 className={`text-[10px] font-bold px-3 py-1 rounded-full ${colorMap[habit.color].split(' ')[2]} ${colorMap[habit.color].split(' ')[1]}`}
               >
                 +1 {habit.unit}
-              </button>
+              </motion.button>
             </div>
           </div>
         ))}

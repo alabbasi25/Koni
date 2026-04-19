@@ -16,14 +16,17 @@ import {
 } from 'lucide-react';
 import { usePlanet } from '../../context/KokabContext';
 import { ModernInput } from '../ui/ModernInput';
+import { ThemeSwitcher } from '../ui/ThemeSwitcher';
+import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 export const ProfilePage: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser }) => {
-  const { currentUser, profiles, streaks, updateProfile, tasks, assets, populateTestData, resetApp } = usePlanet();
+  const { currentUser, profiles, streaks, updateProfile, tasks, assets, populateTestData, resetApp, theme, setTheme } = usePlanet();
   const profile = profiles[currentUser];
   const streak = streaks[currentUser];
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(profile);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const completedTasks = tasks.filter(t => t.assignedTo === currentUser && t.status === 'completed').length;
   const achievedGoals = assets.filter(a => a.current >= a.target).length;
@@ -41,9 +44,9 @@ export const ProfilePage: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUs
       className="space-y-8 pb-12"
     >
       {/* Header / Cover */}
-      <div className="relative h-48 rounded-3xl overflow-hidden glass-card-dark">
-        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/40 to-[var(--color-accent)]/40 backdrop-blur-xl" />
-        <div className="absolute inset-0 flex items-center justify-center opacity-10">
+      <div className="relative h-48 rounded-3xl overflow-hidden glass-card">
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/20 to-[var(--color-accent)]/20 backdrop-blur-xl" />
+        <div className="absolute inset-0 flex items-center justify-center opacity-5">
           <User size={200} />
         </div>
       </div>
@@ -155,12 +158,27 @@ export const ProfilePage: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUs
               <p className="text-[10px] opacity-50">مسح كافة البيانات والبدء من جديد</p>
             </div>
             <button 
-              onClick={() => { if(confirm('هل أنت متأكد من رغبتك في تصفير النظام؟')) resetApp(); }}
+              onClick={() => setShowResetConfirm(true)}
               className="px-4 py-2 rounded-xl bg-rose-500/20 text-rose-500 text-xs font-bold hover:bg-rose-500/30 transition-colors"
             >
               تصفير
             </button>
           </div>
+        </div>
+
+        <ConfirmationModal 
+          isOpen={showResetConfirm}
+          onClose={() => setShowResetConfirm(false)}
+          onConfirm={resetApp}
+          title="تصفير النظام"
+          message="هل أنت متأكد من رغبتك في تصفير النظام؟ سيتم مسح كافة البيانات والمهام والسجلات المالية نهائياً."
+          confirmLabel="تصفير الآن"
+          cancelLabel="تراجع"
+        />
+
+        <h3 className="text-xs font-bold uppercase tracking-widest opacity-60 px-4">المظهر والثيمات</h3>
+        <div className="px-4">
+          <ThemeSwitcher currentTheme={theme} setTheme={setTheme} />
         </div>
 
         <h3 className="text-xs font-bold uppercase tracking-widest opacity-60 px-4">الإعدادات والتفضيلات</h3>

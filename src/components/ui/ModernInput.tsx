@@ -12,10 +12,10 @@ export const ModernInput: React.FC<ModernInputProps> = ({ label, icon, ...props 
   return (
     <div className="relative flex flex-col gap-1 w-full group">
       <label 
-        className={`absolute right-4 transition-all duration-300 pointer-events-none ${
+        className={`absolute right-4 transition-all duration-300 pointer-events-none z-10 ${
           isFocused || props.value 
-            ? '-top-2.5 text-xs bg-[var(--color-bg-card)] px-2 text-[var(--color-primary)] font-bold z-10' 
-            : 'top-3.5 text-[var(--color-text-secondary)]'
+            ? '-top-2.5 text-[10px] bg-[var(--color-bg-card)] px-2 text-[var(--color-primary)] font-black uppercase tracking-wider' 
+            : 'top-4 text-sm text-[var(--color-text-secondary)]/60 font-bold'
         }`}
       >
         {label}
@@ -30,7 +30,7 @@ export const ModernInput: React.FC<ModernInputProps> = ({ label, icon, ...props 
           {...props}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          className={`input-field font-medium ${icon ? 'pl-12' : ''}`}
+          className={`input-field font-bold text-sm ${icon ? 'pl-12' : ''} ${isFocused ? 'ring-4 ring-[var(--color-primary)]/10' : ''}`}
         />
       </div>
     </div>
