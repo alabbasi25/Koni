@@ -11,11 +11,11 @@ import {
   Ticket,
   X
 } from 'lucide-react';
-import { useKokab } from '../../context/KokabContext';
+import { usePlanet } from '../../context/KokabContext';
 import { ModernInput } from '../ui/ModernInput';
 
 export const TravelPlanner: React.FC = () => {
-  const { travel, addTravelPlan, updateTravelPackingList, addPackingItem } = useKokab();
+  const { travel, addTravelPlan, updateTravelPackingList, addPackingItem } = usePlanet();
   const [showAdd, setShowAdd] = useState(false);
   const [newPlan, setNewPlan] = useState({ destination: '', budget: 0, startDate: '', endDate: '' });
   const [newItem, setNewItem] = useState<{ [key: string]: string }>({});

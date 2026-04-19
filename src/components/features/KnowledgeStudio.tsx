@@ -1,11 +1,40 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, GraduationCap, Library, Plus, Search, Book as BookIcon, ChevronRight, TrendingUp, X, Mic, Play, MessageSquareQuote, Palette, Clock, CheckCircle2, History } from 'lucide-react';
+import { 
+  BookOpen, 
+  GraduationCap, 
+  Library, 
+  Plus, 
+  Search, 
+  Book as BookIcon, 
+  ChevronRight, 
+  TrendingUp, 
+  X, 
+  Mic, 
+  Play, 
+  MessageSquareQuote, 
+  Palette, 
+  Clock, 
+  CheckCircle2, 
+  History,
+  ChevronLeft,
+  Camera
+} from 'lucide-react';
 import { usePlanet } from '../../context/KokabContext';
 import { ModernInput } from '../ui/ModernInput';
 
 export const KnowledgeStudio: React.FC = () => {
-  const { library, updateBookProgress, addBook, currentUser, addAudioNote, hobbyProjects, updateHobbyProgress, addHobbyProject } = usePlanet();
+  const { 
+    library, 
+    updateBookProgress, 
+    addBook, 
+    currentUser, 
+    addAudioNote, 
+    hobbyProjects, 
+    updateHobbyProgress, 
+    addHobbyProject,
+    addHobbyPhoto 
+  } = usePlanet();
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [showAddHobby, setShowAddHobby] = useState(false);
@@ -106,13 +135,32 @@ export const KnowledgeStudio: React.FC = () => {
 
               <div className="flex justify-between items-center pt-2">
                 <div className="text-[8px] opacity-40">الخطوة {project.currentStep} من {project.totalSteps}</div>
-                <button 
-                  onClick={() => updateHobbyProgress(project.id, Math.min(project.totalSteps, project.currentStep + 1))}
-                  className="p-1.5 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500 transition-all"
-                >
-                  <Plus size={14} />
-                </button>
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => {
+                      const randomImg = `https://picsum.photos/seed/${project.id}-${project.dailyPhotos.length}/400/300`;
+                      addHobbyPhoto(project.id, randomImg);
+                    }}
+                    className="p-1.5 rounded-lg glass text-emerald-500 hover:bg-emerald-500/10 transition-all"
+                    title="إضافة صورة توثيقية"
+                  >
+                    <Camera size={14} />
+                  </button>
+                  <button 
+                    onClick={() => updateHobbyProgress(project.id, Math.min(project.totalSteps, project.currentStep + 1))}
+                    className="p-1.5 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500 transition-all"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
               </div>
+
+              {project.dailyPhotos && project.dailyPhotos.length > 0 && (
+                <div className="pt-2">
+                  <div className="text-[8px] font-bold opacity-30 uppercase mb-2 tracking-widest">معرض التوثيق</div>
+                  <PhotoCarousel photos={project.dailyPhotos} />
+                </div>
+              )}
             </motion.div>
           ))}
           {hobbyProjects.length === 0 && (
@@ -335,5 +383,49 @@ export const KnowledgeStudio: React.FC = () => {
         )}
       </AnimatePresence>
     </motion.div>
+  );
+};
+
+const PhotoCarousel: React.FC<{ photos: { url: string; timestamp: number }[] }> = ({ photos }) => {
+  const [index, setIndex] = useState(0);
+
+  const next = () => setIndex((prev) => (prev + 1) % photos.length);
+  const prev = () => setIndex((prev) => (prev - 1 + photos.length) % photos.length);
+
+  return (
+    <div className="relative group overflow-hidden rounded-xl bg-black/20 aspect-video">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={index}
+          src={photos[index].url}
+          referrerPolicy="no-referrer"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          className="w-full h-full object-cover"
+        />
+      </AnimatePresence>
+      
+      {photos.length > 1 && (
+        <>
+          <div className="absolute inset-0 flex items-center justify-between px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onClick={prev} className="w-6 h-6 rounded-full glass flex items-center justify-center text-white">
+              <ChevronLeft size={14} />
+            </button>
+            <button onClick={next} className="w-6 h-6 rounded-full glass flex items-center justify-center text-white">
+              <ChevronRight size={14} />
+            </button>
+          </div>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            {photos.map((_, i) => (
+              <div key={i} className={`w-1 h-1 rounded-full ${i === index ? 'bg-white' : 'bg-white/30'}`} />
+            ))}
+          </div>
+        </>
+      )}
+      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full glass text-[8px] text-white font-bold">
+        {new Date(photos[index].timestamp).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' })}
+      </div>
+    </div>
   );
 };

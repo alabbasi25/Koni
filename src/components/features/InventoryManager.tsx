@@ -25,6 +25,7 @@ export const InventoryManager: React.FC = () => {
     updateInventoryStock, 
     updateKanbanStatus, 
     syncInventoryConsumption,
+    addNotification,
     currentUser 
   } = usePlanet();
   const [searchQuery, setSearchQuery] = useState('');
@@ -253,8 +254,11 @@ export const InventoryManager: React.FC = () => {
                     </p>
                     <button 
                       onClick={() => {
-                        // Using context to send notification
-                        syncInventoryConsumption();
+                        addNotification({
+                          title: 'تنبيه رادار التسوق! 🛒',
+                          content: `${isFahad ? 'فهد' : 'بشرى'} يطلب منك التحقق من قائمة النواقص لأنك في منطقة التسوق.`,
+                          type: 'routine'
+                        });
                       }}
                       className="w-full py-2 rounded-lg bg-blue-500 text-white text-[10px] font-bold flex items-center justify-center gap-2"
                     >

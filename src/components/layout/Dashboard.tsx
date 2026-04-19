@@ -65,6 +65,8 @@ import { TimeCapsule } from '../features/TimeCapsule';
 import { HapticPresence } from '../features/HapticPresence';
 import { FutureFamily } from '../features/FutureFamily';
 import { ProfilePage } from '../views/ProfilePage';
+import { NotificationCenter } from '../ui/NotificationCenter';
+import { PlanetHealthSection } from '../ui/PlanetHealthSection';
 
 import { MoodTracker } from '../features/MoodTracker';
 import { SharedJournal } from '../features/SharedJournal';
@@ -93,7 +95,6 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
   const [activeTab, setActiveTab] = useState<ViewID>('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [presenceActive, setPresenceActive] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
 
   const handlePresencePulse = () => {
     setPresenceActive(true);
@@ -188,6 +189,7 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
           <div className="space-y-1">
             <button
               onClick={() => setActiveTab('home')}
+              whileTap={{ scale: 0.95 }}
               className={`w-full p-3 rounded-xl flex items-center gap-4 transition-all ${activeTab === 'home' ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' : 'hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]'}`}
             >
               <LayoutDashboard size={20} />
@@ -203,6 +205,7 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id as ViewID)}
+                    whileTap={{ scale: 0.97 }}
                     className={`w-full p-3 rounded-xl flex items-center gap-4 transition-all ${activeTab === item.id ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' : 'hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]'}`}
                   >
                     {item.icon}
@@ -277,17 +280,11 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
               </div>
             </div>
 
-            <button 
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="w-10 h-10 rounded-xl glass flex items-center justify-center relative hover:bg-[var(--color-primary)]/10 transition-colors"
-            >
-              <Bell size={20} />
-              {notifications.some(n => !n.read) && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-[var(--color-bg-deep)]" />
-              )}
-            </button>
-            <button 
+            <NotificationCenter />
+            
+            <motion.button 
               onClick={() => setActiveTab('profile')}
+              whileTap={{ scale: 0.95 }}
               className="w-10 h-10 rounded-xl glass overflow-hidden border-2 border-[var(--color-primary)]/20 hover:border-[var(--color-primary)] transition-all lg:hidden"
             >
               <img 
@@ -295,7 +292,7 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
                 alt="Profile" 
                 className="w-full h-full object-cover"
               />
-            </button>
+            </motion.button>
           </div>
         </header>
 
@@ -433,26 +430,26 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
       </AnimatePresence>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-6 z-40 lg:hidden">
-        <div className="glass rounded-[32px] p-2 flex justify-between items-center shadow-2xl shadow-black/40 border border-[var(--color-border)]/50 backdrop-blur-2xl">
+      <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 lg:p-6 z-40 lg:hidden pointer-events-none">
+        <div className="glass rounded-[32px] p-2 flex justify-between items-center shadow-2xl shadow-black/40 border border-[var(--color-border)]/50 backdrop-blur-2xl pointer-events-auto mb-safe">
           <TabItem 
-            icon={<LayoutDashboard size={24} />} 
+            icon={<LayoutDashboard size={22} />} 
             label="الرئيسية" 
             active={activeTab === 'home'} 
             onClick={() => setActiveTab('home')}
           />
           <TabItem 
-            icon={<Package size={24} />} 
+            icon={<Package size={22} />} 
             label="المخزون" 
             active={activeTab === 'inventory'} 
             onClick={() => setActiveTab('inventory')}
           />
-          <div className="relative -top-10">
+          <div className="relative -top-8 px-2">
             <button 
               onClick={handlePresencePulse}
-              className={`w-20 h-20 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white shadow-2xl shadow-[var(--color-primary)]/40 flex items-center justify-center hover:scale-110 transition-transform duration-300 border-4 border-[var(--color-bg-deep)] ${presenceActive ? 'animate-pulse' : ''}`}
+              className={`w-16 h-16 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white shadow-2xl shadow-[var(--color-primary)]/40 flex items-center justify-center hover:scale-110 transition-transform duration-300 border-4 border-[var(--color-bg-deep)] ${presenceActive ? 'animate-pulse' : ''}`}
             >
-              <Fingerprint size={36} />
+              <Fingerprint size={28} />
               {presenceActive && (
                 <motion.div 
                   initial={{ scale: 1, opacity: 0.5 }}
@@ -464,13 +461,13 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
             </button>
           </div>
           <TabItem 
-            icon={<Bot size={24} />} 
+            icon={<Bot size={22} />} 
             label="المستشار" 
             active={activeTab === 'chat'} 
             onClick={() => setActiveTab('chat')}
           />
           <TabItem 
-            icon={<User size={24} />} 
+            icon={<User size={22} />} 
             label="أنا" 
             active={activeTab === 'profile'} 
             onClick={() => setActiveTab('profile')}
@@ -482,13 +479,14 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
 };
 
 const TabItem: React.FC<{ icon: React.ReactNode; label: string; active: boolean; onClick: () => void }> = ({ icon, label, active, onClick }) => (
-  <button 
+  <motion.button 
     onClick={onClick}
+    whileTap={{ scale: 0.9 }}
     className={`flex flex-col items-center gap-1 px-4 py-2 rounded-2xl transition-all duration-300 ${active ? 'text-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'text-[var(--color-text-secondary)] opacity-60 hover:opacity-100'}`}
   >
     {icon}
     <span className="text-[8px] font-bold uppercase tracking-tighter">{label}</span>
-  </button>
+  </motion.button>
 );
 
 import { PlanetWeather } from '../features/PlanetWeather';
@@ -503,6 +501,9 @@ const HomeView: React.FC<{ setActiveTab: (tab: ViewID) => void }> = ({ setActive
         <h2 className="text-3xl font-black tracking-tight">أهلاً، {currentUser === 'F' ? 'فهد' : 'بشرى'} 👋</h2>
         <p className="text-sm text-[var(--color-text-secondary)] font-medium">إليك ملخص حالة كوكبك اليوم</p>
       </div>
+
+      {/* Planet Health Score Section */}
+      <PlanetHealthSection />
 
       {/* Planet Weather Hero */}
       <PlanetWeather />

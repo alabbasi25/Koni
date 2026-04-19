@@ -1,5 +1,5 @@
 import React from 'react';
-import { Moon, Sun, Trees, Flower2 } from 'lucide-react';
+import { Moon, Sun, Trees, Flower2, Info } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Theme } from '../../types';
 
@@ -12,6 +12,8 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ currentTheme, setT
   const themes: { id: Theme; icon: React.ReactNode; label: string; color: string }[] = [
     { id: 'midnight', icon: <Moon size={20} />, label: 'ليلة القهوة', color: 'bg-[#8b5cf6]' },
     { id: 'emerald', icon: <Trees size={20} />, label: 'الغابة العميقة', color: 'bg-[#10B981]' },
+    { id: 'light', icon: <Sun size={20} />, label: 'نهاري نقي', color: 'bg-[#6366f1]' },
+    { id: 'high-contrast', icon: <Info size={20} />, label: 'تباين عالي', color: 'bg-[#000000]' },
     { id: 'gold', icon: <Sun size={20} />, label: 'شروق الصحراء', color: 'bg-[#b45309]' },
     { id: 'rose', icon: <Flower2 size={20} />, label: 'سحاب وردي', color: 'bg-[#e11d48]' },
   ];

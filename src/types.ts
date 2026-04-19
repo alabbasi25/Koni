@@ -134,7 +134,7 @@ export interface VitalSigns {
 
 export interface Notification {
   id: string;
-  type: 'urgent' | 'routine' | 'financial' | 'spiritual';
+  type: 'urgent' | 'routine' | 'financial' | 'spiritual' | 'social' | 'tasks';
   title: string;
   content: string;
   timestamp: number;
@@ -214,6 +214,18 @@ export interface Habit {
   lastUpdated: number;
 }
 
+export interface NotificationSettings {
+  tasks: boolean;
+  updates: boolean;
+  athkar: boolean;
+  financial: boolean;
+  social: boolean;
+}
+
+export interface TaskSettings {
+  showDailyFilter: boolean;
+}
+
 export interface UserProfile {
   userId: UserID;
   name: string;
@@ -221,6 +233,8 @@ export interface UserProfile {
   bio?: string;
   joinedAt: number;
   delegatedSpendingCeiling: number; // Max amount without partner approval
+  notificationSettings: NotificationSettings;
+  taskSettings: TaskSettings;
 }
 
 export interface Streak {
@@ -299,6 +313,8 @@ export interface AthkarItem {
   count: Record<UserID, number>;
   isDaily: boolean;
   notificationTime?: string; // HH:mm
+  startTime?: string; // HH:mm
+  endTime?: string; // HH:mm
   lastCompleted?: Record<UserID, number>;
 }
 
@@ -501,7 +517,7 @@ export interface ArbitrationRequest {
   timestamp: number;
 }
 
-export type Theme = 'midnight' | 'emerald' | 'gold' | 'rose' | 'system';
+export type Theme = 'midnight' | 'emerald' | 'gold' | 'rose' | 'light' | 'high-contrast' | 'system';
 
 export type PrivacyState = 'private' | 'shared' | 'public';
 

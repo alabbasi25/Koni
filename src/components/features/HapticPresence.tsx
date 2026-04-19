@@ -4,11 +4,12 @@ import { Fingerprint, Heart, Zap, Waves, Sparkles, MessageCircle, Activity } fro
 import { usePlanet } from '../../context/KokabContext';
 
 export const HapticPresence: React.FC = () => {
-  const { currentUser, partnerStatus } = usePlanet();
+  const { currentUser, partnerStatus, sendHapticPulse } = usePlanet();
   const [activePulse, setActivePulse] = useState<string | null>(null);
 
   const sendPulse = (type: string) => {
     setActivePulse(type);
+    sendHapticPulse(type);
     if ('vibrate' in navigator) {
       if (type === 'heart') navigator.vibrate([200, 100, 200, 100, 400]);
       else if (type === 'zap') navigator.vibrate(50);

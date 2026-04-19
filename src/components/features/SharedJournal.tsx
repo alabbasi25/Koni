@@ -5,7 +5,7 @@ import { usePlanet } from '../../context/KokabContext';
 import { JournalEntry } from '../../types';
 
 export const SharedJournal: React.FC = () => {
-  const { journal, addJournalEntry, currentUser } = usePlanet();
+  const { journal, addJournalEntry, deleteJournalEntry, currentUser } = usePlanet();
   const [isAdding, setIsAdding] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   
@@ -170,7 +170,10 @@ export const SharedJournal: React.FC = () => {
                       <div className="flex items-center gap-2 text-[10px] text-rose-500/60 font-black">
                         <Heart size={12} /> مساحة خاصة (مشفرة)
                       </div>
-                      <button className="text-[10px] font-black opacity-30 hover:opacity-100 hover:text-rose-500 transition-all flex items-center gap-1">
+                      <button 
+                        onClick={() => deleteJournalEntry(entry.id)}
+                        className="text-[10px] font-black opacity-30 hover:opacity-100 hover:text-rose-500 transition-all flex items-center gap-1"
+                      >
                         <Trash2 size={12} /> حذف
                       </button>
                     </div>

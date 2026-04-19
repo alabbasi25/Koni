@@ -133,36 +133,39 @@ export const ProfilePage: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUs
               <h4 className="text-sm font-bold">وضع التجربة (Testing Mode)</h4>
               <p className="text-[10px] opacity-50">ملء التطبيق ببيانات تجريبية لمعاينة الميزات</p>
             </div>
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
               onClick={populateTestData}
               className="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-500 text-xs font-bold hover:bg-amber-500/30 transition-colors"
             >
               تفعيل
-            </button>
+            </motion.button>
           </div>
           <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)]">
             <div>
               <h4 className="text-sm font-bold">تبديل المستخدم</h4>
               <p className="text-[10px] opacity-50">التبديل بين فهد وبشرى لمحاكاة التفاعل</p>
             </div>
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
               onClick={onSwitchUser}
               className="px-4 py-2 rounded-xl bg-blue-500/20 text-blue-500 text-xs font-bold hover:bg-blue-500/30 transition-colors"
             >
               تبديل إلى {currentUser === 'F' ? 'بشرى' : 'فهد'}
-            </button>
+            </motion.button>
           </div>
           <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)]">
             <div>
               <h4 className="text-sm font-bold text-rose-500">تصفير النظام</h4>
               <p className="text-[10px] opacity-50">مسح كافة البيانات والبدء من جديد</p>
             </div>
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
               onClick={() => setShowResetConfirm(true)}
               className="px-4 py-2 rounded-xl bg-rose-500/20 text-rose-500 text-xs font-bold hover:bg-rose-500/30 transition-colors"
             >
               تصفير
-            </button>
+            </motion.button>
           </div>
         </div>
 
@@ -190,9 +193,12 @@ export const ProfilePage: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUs
           <SettingsItem icon={<Award size={20} />} label="الإنجازات" description="عرض الأوسمة والجوائز المحققة" />
         </div>
 
-        <button className="w-full glass-card p-4 flex items-center justify-center gap-3 text-rose-500 font-bold hover:bg-rose-500/5 transition-colors">
+        <motion.button 
+          whileTap={{ scale: 0.98 }}
+          className="w-full glass-card p-4 flex items-center justify-center gap-3 text-rose-500 font-bold hover:bg-rose-500/5 transition-colors"
+        >
           <LogOut size={20} /> تسجيل الخروج من الكوكب
-        </button>
+        </motion.button>
       </div>
 
       <div className="text-center opacity-30 py-4">

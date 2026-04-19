@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { GoogleGenAI } from "@google/genai";
 import { 
   UserID, 
   UserStatus, 
@@ -27,7 +28,9 @@ import {
   Book,
   FocusState,
   HydrationLog,
+  NotificationSettings,
   TimeCapsuleMessage,
+  TaskSettings,
   Habit,
   UserProfile,
   Streak,
@@ -38,6 +41,7 @@ import {
   MarginaliaComment,
   GeoTimeCapsule,
   HobbyProject,
+  AthkarItem,
   PlanetWeather,
   PlanetWeatherStatus,
   ChildMilestone,
@@ -71,7 +75,12 @@ interface PlanetContextType extends KokabState {
   approveWithdraw: (goalId: string) => void;
   updateVitals: (vitals: Partial<VitalSigns>) => void;
   addNotification: (n: Partial<Notification>) => void;
+  markNotificationAsRead: (id: string) => void;
+  clearNotifications: () => void;
   syncWorship: (sessionId: string, progress: number) => void;
+  googleFitConnected: boolean;
+  setGoogleFitConnected: (v: boolean) => void;
+  syncGoogleFitData: () => Promise<void>;
   addLiability: (l: Partial<Liability>) => void;
   addAssetGoal: (g: Partial<AssetGoal>) => void;
   
@@ -135,6 +144,15 @@ interface PlanetContextType extends KokabState {
   addAthkar: (athkar: Partial<AthkarItem>) => void;
   incrementAthkarCount: (athkarId: string) => void;
   resetDailyAthkar: () => void;
+  rejectChallenge: (id: string) => void;
+  deleteJournalEntry: (id: string) => void;
+  deleteLiability: (id: string) => void;
+  deleteAssetGoal: (id: string) => void;
+  addCalendarEvent: (event: Partial<CalendarEvent>) => void;
+  deleteCalendarEvent: (id: string) => void;
+  updateLiabilityPayment: (id: string, amount: number) => void;
+  updateAssetGoalProgress: (id: string, amount: number) => void;
+  sendHapticPulse: (type: string) => void;
 
   // Consensus & Permissions
   requestConsensus: (type: ConsensusRequest['type'], data: any) => void;
@@ -150,6 +168,8 @@ interface PlanetContextType extends KokabState {
   addGratitude: (content: string) => void;
   sendConflictMessage: (content: string) => void;
   revealConflictMessages: () => void;
+  updateNotificationSettings: (settings: Partial<NotificationSettings>) => void;
+  updateTaskSettings: (settings: Partial<TaskSettings>) => void;
   theme: string;
   setTheme: (theme: string) => void;
   // Quran & Mood config
@@ -163,6 +183,8 @@ interface PlanetContextType extends KokabState {
 }
 
 const PlanetContext = createContext<PlanetContextType | undefined>(undefined);
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
 
 export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserID }> = ({ children, userId }) => {
   const [currentUser] = useState<UserID>(userId);
@@ -205,6 +227,7 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
   const [theme, setThemeState] = useState<string>(localStorage.getItem('kokab-theme') || 'midnight');
   const [emergencyMode, setEmergencyMode] = useState(false);
   const [smartHydrationEnabled, setSmartHydrationEnabled] = useState(true);
+  const [googleFitConnected, setGoogleFitConnected] = useState(false);
   const [weather, setWeather] = useState<PlanetWeather>({ status: 'sunny', reason: 'كل شيء على ما يرام', suggestion: 'استمتعوا بيومكم!', timestamp: Date.now() });
   const [geoCapsules, setGeoCapsules] = useState<GeoTimeCapsule[]>([]);
   const [hobbyProjects, setHobbyProjects] = useState<HobbyProject[]>([]);
@@ -233,9 +256,9 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
   const [loveLanguages, setLoveLanguages] = useState<LoveLanguageResult[]>([]);
 
   const [athkar, setAthkar] = useState<AthkarItem[]>([
-    { id: 'm1', text: 'سبحان الله وبحمده', category: 'morning', target: 100, count: { F: 0, B: 0 }, isDaily: true, notificationTime: '06:00' },
-    { id: 'm2', text: 'الحمد لله', category: 'morning', target: 33, count: { F: 0, B: 0 }, isDaily: true },
-    { id: 'e1', text: 'أستغفر الله وأتوب إليه', category: 'evening', target: 100, count: { F: 0, B: 0 }, isDaily: true, notificationTime: '17:00' },
+    { id: 'm1', text: 'سبحان الله وبحمده', category: 'morning', target: 100, count: { F: 0, B: 0 }, isDaily: true, notificationTime: '06:00', startTime: '05:00', endTime: '10:00' },
+    { id: 'm2', text: 'الحمد لله', category: 'morning', target: 33, count: { F: 0, B: 0 }, isDaily: true, startTime: '05:00', endTime: '10:00' },
+    { id: 'e1', text: 'أستغفر الله وأتوب إليه', category: 'evening', target: 100, count: { F: 0, B: 0 }, isDaily: true, notificationTime: '17:00', startTime: '17:00', endTime: '22:00' },
   ]);
 
   const setTheme = (newTheme: string) => {
@@ -252,8 +275,15 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [romancePrompts, setRomancePrompts] = useState<RomancePrompt[]>([
     {
-      id: 'p1',
-      question: 'ما هو أكثر شيء تقدره في علاقتنا اليوم؟',
+      id: 'rp-appreciation',
+      question: 'ما هو الشيء البسيط الذي تقدره في شريكك اليوم؟',
+      answers: { F: '', B: '' },
+      revealed: false,
+      timestamp: Date.now()
+    },
+    {
+      id: 'rp-dream',
+      question: 'ما هو الحلم الصغير الذي تود تحقيقه معنا هذا الشهر؟',
       answers: { F: '', B: '' },
       revealed: false,
       timestamp: Date.now()
@@ -267,8 +297,24 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
   const [hydrationLogs, setHydrationLogs] = useState<HydrationLog[]>([]);
   const [timeCapsules, setTimeCapsules] = useState<TimeCapsuleMessage[]>([]);
   const [profiles, setProfiles] = useState<Record<UserID, UserProfile>>({
-    F: { userId: 'F', name: 'فهد', bio: 'مستكشف رقمي', joinedAt: Date.now(), delegatedSpendingCeiling: 1000 },
-    B: { userId: 'B', name: 'بشرى', bio: 'باحثة عن الهدوء', joinedAt: Date.now(), delegatedSpendingCeiling: 500 }
+    F: { 
+      userId: 'F', 
+      name: 'فهد', 
+      bio: 'مستكشف رقمي', 
+      joinedAt: Date.now(), 
+      delegatedSpendingCeiling: 1000,
+      notificationSettings: { tasks: true, updates: true, athkar: true, financial: true, social: true },
+      taskSettings: { showDailyFilter: true }
+    },
+    B: { 
+      userId: 'B', 
+      name: 'بشرى', 
+      bio: 'باحثة عن الهدوء', 
+      joinedAt: Date.now(), 
+      delegatedSpendingCeiling: 500,
+      notificationSettings: { tasks: true, updates: true, athkar: true, financial: true, social: true },
+      taskSettings: { showDailyFilter: true }
+    }
   });
   const [streaks, setStreaks] = useState<Record<UserID, Streak>>({
     F: { userId: 'F', count: 0 },
@@ -327,10 +373,47 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
           type: 'routine'
         });
       }
+      if (data.type === 'remote_notification' && data.target === currentUser) {
+        addNotification({
+          ...data.notification,
+          // Force standard type for filtering
+          type: data.notification.type || 'routine'
+        });
+      }
     });
 
     return () => { s.close(); };
   }, [currentUser]);
+
+  // Auto-Reminders for Liabilities
+  useEffect(() => {
+    const checkUpcomingLiabilities = () => {
+      const now = Date.now();
+      const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
+      
+      liabilities.forEach(l => {
+        const timeDiff = l.dueDate - now;
+        // If due in roughly 2 days (between 1.5 and 2.5 days to be safe and avoid double triggers if check runs frequently)
+        if (timeDiff > 0 && timeDiff <= twoDaysInMs + 3600000 && timeDiff >= twoDaysInMs - 3600000) {
+          const reminderId = `reminder-${l.id}-${new Date(l.dueDate).toDateString()}`;
+          if (!notifications.some(n => n.id === reminderId)) {
+            const notificationContent = {
+              id: reminderId,
+              title: 'تذكير بموعد استحقاق 💸',
+              content: `بقي يومان على موعد سداد "${l.name}" (القسط: ${l.monthlyInstallment} ريال).`,
+              type: 'financial' as const
+            };
+            addNotification(notificationContent);
+            sendPartnerNotification(notificationContent);
+          }
+        }
+      });
+    };
+
+    const timer = setInterval(checkUpcomingLiabilities, 12 * 60 * 60 * 1000); // Check every 12 hours
+    checkUpcomingLiabilities(); // Initial check
+    return () => clearInterval(timer);
+  }, [liabilities, notifications]);
 
   // Derived State
   const planetHealth = calculatePlanetHealth(
@@ -438,9 +521,89 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
     setVitals(prev => ({ ...prev, [currentUser]: { ...prev[currentUser], ...v, lastSync: Date.now() } }));
   };
 
+  const syncGoogleFitData = async () => {
+    if (!googleFitConnected) return;
+    try {
+      const resp = await fetch('/api/fitness/sync');
+      const data = await resp.json();
+      setVitals(prev => ({
+        ...prev,
+        [currentUser]: {
+          ...prev[currentUser],
+          steps: data.steps,
+          calories: data.calories,
+          lastSync: Date.now()
+        }
+      }));
+      addNotification({
+        title: 'تمت المزامنة بنجاح 🏃‍♂️',
+        content: `تم استيراد ${data.steps} خطوة من Google Fit`,
+        type: 'routine'
+      });
+    } catch (err) {
+      console.error('Fit sync error:', err);
+    }
+  };
+
   const addNotification = (n: Partial<Notification>) => {
-    const newN: Notification = { id: Math.random().toString(36).substr(2, 9), type: n.type || 'routine', title: n.title || '', content: n.content || '', timestamp: Date.now(), read: false };
+    const type = n.type || 'routine';
+    const settings = profiles[currentUser].notificationSettings;
+    
+    let shouldAdd = true;
+    if (type === 'tasks' && !settings.tasks) shouldAdd = false;
+    if (type === 'financial' && !settings.financial) shouldAdd = false;
+    if (type === 'spiritual' && !settings.athkar) shouldAdd = false;
+    if (type === 'social' && !settings.social) shouldAdd = false;
+    if (type === 'routine' && !settings.updates) shouldAdd = false;
+
+    if (!shouldAdd && type !== 'urgent') return;
+
+    const newN: Notification = { 
+      id: n.id || Math.random().toString(36).substr(2, 9), 
+      type, 
+      title: n.title || '', 
+      content: n.content || '', 
+      timestamp: Date.now(), 
+      read: false 
+    };
     setNotifications(prev => [newN, ...prev]);
+  };
+
+  const markNotificationAsRead = (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const clearNotifications = () => {
+    setNotifications([]);
+  };
+
+  const sendPartnerNotification = (n: Partial<Notification>) => {
+    const partnerId = currentUser === 'F' ? 'B' : 'F';
+    socket?.emit('sync:event', {
+      type: 'remote_notification',
+      target: partnerId,
+      notification: n
+    });
+  };
+
+  const updateNotificationSettings = (settings: Partial<NotificationSettings>) => {
+    setProfiles(prev => ({
+      ...prev,
+      [currentUser]: {
+        ...prev[currentUser],
+        notificationSettings: { ...prev[currentUser].notificationSettings, ...settings }
+      }
+    }));
+  };
+
+  const updateTaskSettings = (settings: Partial<TaskSettings>) => {
+    setProfiles(prev => ({
+      ...prev,
+      [currentUser]: {
+        ...prev[currentUser],
+        taskSettings: { ...prev[currentUser].taskSettings, ...settings }
+      }
+    }));
   };
 
   const syncWorship = (sessionId: string, progress: number) => {
@@ -452,11 +615,27 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
       id: Math.random().toString(36).substr(2, 9),
       name: l.name || '',
       totalAmount: l.totalAmount || 0,
-      remainingAmount: l.remainingAmount || 0,
+      remainingAmount: l.totalAmount || 0,
       monthlyInstallment: l.monthlyInstallment || 0,
       dueDate: l.dueDate || Date.now() + 30 * 86400000
     };
     setLiabilities(prev => [...prev, newL]);
+  };
+
+  const deleteLiability = (id: string) => {
+    setLiabilities(prev => prev.filter(l => l.id !== id));
+  };
+
+  const updateLiabilityPayment = (id: string, amount: number) => {
+    setLiabilities(prev => prev.map(l => 
+      l.id === id ? { ...l, remainingAmount: Math.max(0, l.remainingAmount - amount) } : l
+    ));
+    addTransaction({
+      amount,
+      category: 'التزامات',
+      description: `سداد جزء من ${liabilities.find(l => l.id === id)?.name || 'التزام'}`,
+      type: 'fixed'
+    });
   };
 
   const addAssetGoal = (g: Partial<AssetGoal>) => {
@@ -470,6 +649,17 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
       unlockRequests: g.unlockRequests || []
     };
     setAssets(prev => [...prev as any, newG as any]);
+  };
+
+  const deleteAssetGoal = (id: string) => {
+    setAssets(prev => prev.filter(a => a.id !== id));
+  };
+
+  const updateAssetGoalProgress = (id: string, amount: number) => {
+    setAssets(prev => prev.map(a => 
+      a.id === id ? { ...a, current: a.current + amount } : a
+    ));
+    addBarakahPoints(Math.floor(amount / 10));
   };
 
   const addFinancialGoal = (goal: Partial<VisionBoardGoal>) => {
@@ -519,7 +709,9 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
       target: a.target || 33,
       count: { F: 0, B: 0 },
       isDaily: a.isDaily ?? true,
-      notificationTime: a.notificationTime
+      notificationTime: a.notificationTime,
+      startTime: a.startTime,
+      endTime: a.endTime
     };
     setAthkar(prev => [...prev, newItem]);
   };
@@ -548,8 +740,42 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
     }));
   };
 
+  const addCalendarEvent = (event: Partial<CalendarEvent>) => {
+    const newEvent: CalendarEvent = {
+      id: Math.random().toString(36).substr(2, 9),
+      title: event.title || '',
+      startTime: event.startTime || Date.now(),
+      endTime: event.endTime || Date.now() + 3600000,
+      category: event.category || 'other',
+      participants: event.participants || ['F', 'B'],
+      location: event.location,
+      status: 'confirmed'
+    };
+    setCalendar(prev => [...prev, newEvent]);
+  };
+
+  const deleteCalendarEvent = (id: string) => {
+    setCalendar(prev => prev.filter(e => e.id !== id));
+  };
+
   const resetDailyAthkar = () => {
     setAthkar(prev => prev.map(item => item.isDaily ? { ...item, count: { F: 0, B: 0 } } : item));
+  };
+
+  const sendHapticPulse = (type: string) => {
+    if (socket) {
+      socket.emit('sync:event', { 
+        type: 'haptic', 
+        pulseType: type,
+        from: currentUser,
+        target: currentUser === 'F' ? 'B' : 'F' 
+      });
+      addNotification({
+        title: 'تم إرسال الهمس الرقمي 💓',
+        content: `لقد أرسلت لمسة "${type}" لشريكك.`,
+        type: 'spiritual'
+      });
+    }
   };
 
   // New 18-View Actions
@@ -568,6 +794,10 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
 
   const acceptChallenge = (id: string) => {
     setChallenges(prev => prev.map(c => c.id === id ? { ...c, status: 'active', startTime: Date.now() } : c));
+  };
+
+  const rejectChallenge = (id: string) => {
+    setChallenges(prev => prev.map(c => c.id === id ? { ...c, status: 'rejected' } : c));
   };
 
   const completeChallenge = (id: string, winner: UserID) => {
@@ -1263,6 +1493,10 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
     setJournal(prev => [entry, ...prev]);
   };
 
+  const deleteJournalEntry = (id: string) => {
+    setJournal(prev => prev.filter(j => j.id !== id));
+  };
+
   const updateBudget = (b: Partial<Budget>) => {
     setBudget(prev => ({ ...prev, ...b }));
   };
@@ -1309,6 +1543,38 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
     return () => clearInterval(interval);
   }, [tasks, notifications]);
 
+  // Liability Notification Check
+  useEffect(() => {
+    const checkLiabilities = () => {
+      const now = Date.now();
+      const twoDaysFromNow = now + 2 * 24 * 60 * 60 * 1000;
+      
+      liabilities.forEach(l => {
+        if (l.remainingAmount > 0 && l.dueDate <= twoDaysFromNow && l.dueDate > now) {
+          const alreadyNotified = notifications.some(n => n.content.includes(`التزام: ${l.id}`));
+          if (!alreadyNotified) {
+            const notification = {
+              id: `liability-${l.id}`,
+              title: 'تذكير بالدفع! 💳',
+              content: `بقي يومان فقط على موعد سداد "${l.name}". المبلغ المتبقي: ${l.remainingAmount}. (ID: التزام: ${l.id})`,
+              type: 'financial' as const
+            };
+            
+            // Add for self
+            addNotification(notification);
+            
+            // Send to partner as well
+            sendPartnerNotification(notification);
+          }
+        }
+      });
+    };
+
+    const interval = setInterval(checkLiabilities, 3600000); // Check every hour
+    checkLiabilities();
+    return () => clearInterval(interval);
+  }, [liabilities, notifications, currentUser]);
+
   // Planet Weather Logic
   useEffect(() => {
     const calculateWeather = () => {
@@ -1350,12 +1616,23 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
         
         // If it's afternoon and they haven't drunk much
         if (hoursElapsed > 14 && total < 1000) {
+          const partner = u === 'F' ? 'B' : 'F';
+          const uName = u === 'F' ? 'فهد' : 'بشرى';
+          
           const lastNotified = notifications.find(n => n.content.includes('قطرة ماء') && n.timestamp > Date.now() - 4 * 3600 * 1000);
           if (!lastNotified) {
+            // Notify the user themselves
             addNotification({
               title: 'تذكير ذكي: وقت الارتواء 💧',
               content: 'لقد لاحظ الكوكب انخفاض معدل شربك للماء اليوم. قطرة ماء قد تصنع فرقاً في طاقتك!',
               type: 'routine'
+            });
+
+            // Notify the partner too
+            addNotification({
+              title: `تذكير: رطوبة ${uName} منخفضة 💧`,
+              content: `يبدو أن ${uName} لم يشرب ما يكفي من الماء اليوم. ما رأيك في تقديم كوب من الماء له؟`,
+              type: 'spiritual'
             });
           }
         }
@@ -1387,7 +1664,11 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
       resetDeadManSwitch,
       stakeCoins, logQuranVerses, updateMoodConfig, updatePriorityConfig, autoAssignTask, connectFitness, syncFitness, nudgeHydration,
       addFinancialGoal, getAITaskSuggestion, addAthkar, incrementAthkarCount, resetDailyAthkar,
+      rejectChallenge, deleteJournalEntry, deleteLiability, deleteAssetGoal, addCalendarEvent, deleteCalendarEvent, updateLiabilityPayment, updateAssetGoalProgress, sendHapticPulse,
       toggleSmartHydration: () => setSmartHydrationEnabled(prev => !prev),
+      googleFitConnected,
+      setGoogleFitConnected,
+      syncGoogleFitData,
       shareGratitude: (postId: string) => {
         const post = gratitudeFeed.find(p => p.id === postId);
         if (!post) return;
@@ -1401,7 +1682,7 @@ export const PlanetProvider: React.FC<{ children: React.ReactNode; userId: UserI
       requestConsensus, resolveConsensus, updatePermission, populateTestData, resetApp,
       addPrivateNote, addGratitude, likeGratitudePost, commentGratitudePost,
       addMoodLog, addJournalEntry, updateBudget, submitLoveLanguageResult,
-      sendConflictMessage, revealConflictMessages,
+      sendConflictMessage, revealConflictMessages, updateNotificationSettings, updateTaskSettings,
       theme, setTheme
     }}>
       {children}

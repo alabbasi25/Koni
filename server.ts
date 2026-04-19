@@ -53,10 +53,12 @@ async function startServer() {
   });
 
   // OAuth & Fitness Routes
+  const APP_URL = process.env.APP_URL || 'http://localhost:3000';
+
   app.get('/api/auth/google/url', (req, res) => {
     const params = new URLSearchParams({
       client_id: process.env.VITE_GOOGLE_CLIENT_ID || 'dummy_id',
-      redirect_uri: `${req.protocol}://${req.get('host')}/auth/callback`,
+      redirect_uri: `${APP_URL}/auth/callback`,
       response_type: 'code',
       scope: 'https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read',
       access_type: 'offline',

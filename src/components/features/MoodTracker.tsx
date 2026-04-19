@@ -52,37 +52,48 @@ export const MoodTracker: React.FC = () => {
 
   const chartDataWeekly = useMemo(() => {
     const last7Days = new Date();
+    last7Days.setHours(0, 0, 0, 0);
     last7Days.setDate(last7Days.getDate() - 7);
     
-    return [...moodLogs]
-      .filter(entry => entry.timestamp >= last7Days.getTime())
-      .sort((a, b) => a.timestamp - b.timestamp)
-      .map(entry => ({
-        time: new Date(entry.timestamp).toLocaleDateString('ar-EG', { weekday: 'short' }),
-        fullDate: new Date(entry.timestamp).toLocaleDateString('ar-EG', { day: '2-digit', month: '2-digit' }),
-        value: MOOD_VALUES[entry.mood] || 3,
-        mood: entry.mood,
-        note: entry.note,
-        userName: entry.userId === 'F' ? 'فهد' : 'بشرى'
-      }));
+    // Create an array of the last 7 days
+    const days = Array.from({ length: 8 }, (_, i) => {
+      const d = new Date(last7Days);
+      d.setDate(d.getDate() + i);
+      return d;
+    });
+
+    return days.map(day => {
+      const dStr = day.toLocaleDateString('ar-EG', { weekday: 'short' });
+      const fullDate = day.toLocaleDateString('ar-EG', { day: '2-digit', month: '2-digit' });
+      
+      const fEntries = moodLogs.filter(e => e.userId === 'F' && new Date(e.timestamp).toDateString() === day.toDateString());
+      const bEntries = moodLogs.filter(e => e.userId === 'B' && new Date(e.timestamp).toDateString() === day.toDateString());
+      
+      const fValue = fEntries.length > 0 ? fEntries.reduce((acc, e) => acc + (MOOD_VALUES[e.mood] || 3), 0) / fEntries.length : null;
+      const bValue = bEntries.length > 0 ? bEntries.reduce((acc, e) => acc + (MOOD_VALUES[e.mood] || 3), 0) / bEntries.length : null;
+
+      return {
+        time: dStr,
+        fullDate,
+        F_value: fValue,
+        B_value: bValue,
+        // Keep these for tooltip backward compatibility if needed, though CustomTooltip might need update
+        day: day.getTime()
+      };
+    });
   }, [moodLogs]);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      const moodInfo = moodsWithConfig.find(m => m.id === data.mood);
       return (
         <div className="glass-card p-4 border-[var(--color-primary)]/30 shadow-2xl space-y-2 backdrop-blur-xl">
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg ${moodInfo?.color}/20 ${moodInfo?.text} flex items-center justify-center`}>
-              {moodInfo?.icon && React.cloneElement(moodInfo.icon as React.ReactElement, { size: 16 })}
+          <div className="text-[10px] font-black opacity-40 mb-2">{payload[0].payload.fullDate}</div>
+          {payload.map((p: any) => (
+            <div key={p.name} className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: p.color }} />
+              <div className="text-xs font-black">{p.name}: {p.value.toFixed(1)}</div>
             </div>
-            <div>
-              <div className="text-xs font-black">{moodInfo?.label}</div>
-              <div className="text-[8px] opacity-40">{data.fullDate} • {data.userName}</div>
-            </div>
-          </div>
-          {data.note && <p className="text-[10px] italic border-t border-white/5 pt-2 max-w-[150px]">{data.note}</p>}
+          ))}
         </div>
       );
     }
@@ -276,12 +287,21 @@ export const MoodTracker: React.FC = () => {
                     <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'var(--color-primary)', strokeWidth: 1, strokeDasharray: '5 5' }} />
                     <Area 
                       type="monotone" 
-                      dataKey="value" 
-                      stroke="var(--color-primary)" 
-                      fillOpacity={1} 
-                      fill="url(#colorValue)" 
-                      strokeWidth={4}
-                      activeDot={{ r: 6, stroke: 'white', strokeWidth: 2 }}
+                      dataKey="F_value" 
+                      name="فهد"
+                      stroke="#f43f5e" 
+                      fillOpacity={0.1} 
+                      fill="#f43f5e" 
+                      strokeWidth={3}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="B_value" 
+                      name="بشرى"
+                      stroke="#3b82f6" 
+                      fillOpacity={0.1} 
+                      fill="#3b82f6" 
+                      strokeWidth={3}
                     />
                   </AreaChart>
                 </ResponsiveContainer>

@@ -1,10 +1,26 @@
-import React from 'react';
-import { motion } from 'motion/react';
-import { TrendingUp, Target, ShieldCheck, Lock, Unlock, Image as ImageIcon, CheckCircle2, XCircle, Coins, ArrowUpRight, Timer } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { TrendingUp, Target, ShieldCheck, Lock, Unlock, Image as ImageIcon, CheckCircle2, XCircle, Coins, ArrowUpRight, Timer, Plus, X } from 'lucide-react';
 import { usePlanet } from '../../context/KokabContext';
+import { ModernInput } from '../ui/ModernInput';
 
 export const FutureFund: React.FC = () => {
-  const { assets, unlockAsset, approveVisionBoard, currentUser, coinStaking, stakeCoins } = usePlanet();
+  const { assets, unlockAsset, approveVisionBoard, currentUser, coinStaking, stakeCoins, addFinancialGoal } = usePlanet();
+  const [showAdd, setShowAdd] = useState(false);
+  const [newGoal, setNewGoal] = useState({
+    name: '',
+    target: 5000,
+    imageUrl: '',
+    visualDescription: '',
+    requiresDualAuth: true
+  });
+
+  const handleAddGoal = (e: React.FormEvent) => {
+    e.preventDefault();
+    addFinancialGoal(newGoal);
+    setShowAdd(false);
+    setNewGoal({ name: '', target: 5000, imageUrl: '', visualDescription: '', requiresDualAuth: true });
+  };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
@@ -181,9 +197,86 @@ export const FutureFund: React.FC = () => {
         })}
       </div>
 
-      <button className="btn-primary w-full py-5 flex items-center justify-center gap-2 shadow-2xl shadow-[var(--color-primary)]/20">
+      <button 
+        onClick={() => setShowAdd(true)}
+        className="btn-primary w-full py-5 flex items-center justify-center gap-2 shadow-2xl shadow-[var(--color-primary)]/20"
+      >
         <TrendingUp size={20} /> إضافة هدف مستقبلي جديد
       </button>
+
+      <AnimatePresence>
+        {showAdd && (
+          <div className="modal-backdrop">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowAdd(false)} className="absolute inset-0" />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+              animate={{ scale: 1, opacity: 1, y: 0 }} 
+              exit={{ scale: 0.9, opacity: 0, y: 20 }} 
+              className="modal-content overflow-y-auto no-scrollbar max-h-[90vh]"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-black">هدف مستقبلي جديد</h3>
+                  <p className="text-[10px] font-bold text-[var(--color-text-secondary)] uppercase tracking-widest">تخطيط لمستقبل الكوكب</p>
+                </div>
+                <button onClick={() => setShowAdd(false)} className="w-10 h-10 rounded-full glass flex items-center justify-center hover:bg-rose-500/10 hover:text-rose-500 transition-all">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={handleAddGoal} className="space-y-6">
+                <ModernInput 
+                  label="اسم الهدف" required
+                  value={newGoal.name}
+                  onChange={e => setNewGoal(prev => ({ ...prev, name: e.target.value }))}
+                />
+                <ModernInput 
+                  label="المبلغ المستهدف ($)" type="number" required
+                  value={newGoal.target}
+                  onChange={e => setNewGoal(prev => ({ ...prev, target: Number(e.target.value) }))}
+                />
+                <ModernInput 
+                  label="رابط صورة الرؤية"
+                  value={newGoal.imageUrl}
+                  onChange={e => setNewGoal(prev => ({ ...prev, imageUrl: e.target.value }))}
+                />
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase opacity-40">وصف بصري للهدف</label>
+                  <textarea 
+                    value={newGoal.visualDescription}
+                    onChange={e => setNewGoal(prev => ({ ...prev, visualDescription: e.target.value }))}
+                    placeholder="اوصف كيف سيبدو هذا الهدف عند تحقيقه..."
+                    className="w-full h-24 glass border-white/10 rounded-xl px-4 py-3 text-xs outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-bold text-amber-500 flex items-center gap-2">
+                      <ShieldCheck size={14} /> حصالة مشفرة
+                    </div>
+                    <div className="text-[8px] opacity-40 italic">تتطلب موافقة الطرفين للسحب</div>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setNewGoal(prev => ({ ...prev, requiresDualAuth: !prev.requiresDualAuth }))}
+                    className={`w-12 h-6 rounded-full transition-all relative ${newGoal.requiresDualAuth ? 'bg-amber-500' : 'bg-white/10'}`}
+                  >
+                    <motion.div 
+                      animate={{ x: newGoal.requiresDualAuth ? 24 : 4 }}
+                      className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm"
+                    />
+                  </button>
+                </div>
+
+                <button type="submit" className="btn-primary w-full py-5 text-sm shadow-2xl shadow-[var(--color-primary)]/20">
+                  إضافة الهدف المالي
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

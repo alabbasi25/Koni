@@ -18,7 +18,8 @@ import {
   Home,
   Briefcase,
   User,
-  MoreHorizontal
+  MoreHorizontal,
+  Sparkles
 } from 'lucide-react';
 import { usePlanet } from '../../context/KokabContext';
 import { UserID } from '../../types';
@@ -43,7 +44,8 @@ export const TaskOrchestrator: React.FC = () => {
     priorityConfigs,
     updatePriorityConfig,
     autoAssignTask,
-    getAITaskSuggestion
+    getAITaskSuggestion,
+    updateTaskSettings
   } = usePlanet();
   
   const [showAdd, setShowAdd] = useState(false);
@@ -338,17 +340,21 @@ export const TaskOrchestrator: React.FC = () => {
                 </div>
 
                 <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                  <button
-                    onClick={() => setFilterDaily(!filterDaily)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all border ${
-                      filterDaily 
-                        ? 'bg-amber-500 text-white border-amber-500 shadow-lg' 
-                        : 'glass text-[var(--color-text-secondary)] border-white/10'
-                    }`}
-                  >
-                    مهام اليوم والمتأخرة
-                  </button>
-                  <div className="w-px h-6 bg-white/10 mx-1 self-center" />
+                  {profiles[currentUser].taskSettings.showDailyFilter && (
+                    <>
+                      <button
+                        onClick={() => setFilterDaily(!filterDaily)}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all border ${
+                          filterDaily 
+                            ? 'bg-amber-500 text-white border-amber-500 shadow-lg' 
+                            : 'glass text-[var(--color-text-secondary)] border-white/10'
+                        }`}
+                      >
+                        مهام اليوم والمتأخرة
+                      </button>
+                      <div className="w-px h-6 bg-white/10 mx-1 self-center" />
+                    </>
+                  )}
                   {(['all', 'urgent', 'high', 'medium', 'low'] as const).map(p => (
                     <button
                       key={p}
@@ -396,7 +402,19 @@ export const TaskOrchestrator: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/5">
+                  <div className="col-span-2 flex items-center justify-between p-3 glass rounded-xl">
+                    <span className="text-[10px] font-bold">تفعيل فلتر "مهام اليوم والمتأخرة"</span>
+                    <button 
+                      onClick={() => updateTaskSettings({ showDailyFilter: !profiles[currentUser].taskSettings.showDailyFilter })}
+                      className={`w-10 h-5 rounded-full relative transition-all ${profiles[currentUser].taskSettings.showDailyFilter ? 'bg-amber-500' : 'bg-gray-500'}`}
+                    >
+                      <motion.div 
+                        animate={{ x: profiles[currentUser].taskSettings.showDailyFilter ? 22 : 2 }}
+                        className="absolute top-1 w-3 h-3 rounded-full bg-white shadow-sm"
+                      />
+                    </button>
+                  </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-bold opacity-40 uppercase">من تاريخ</label>
                     <input 
@@ -512,13 +530,32 @@ const EnhancedTaskCard: React.FC<{
   isInRoulette: boolean;
   isPartner?: boolean;
 }> = ({ task, onComplete, onDelete, onDelegate, onRoulette, isInRoulette, isPartner }) => {
-  const { priorityConfigs } = usePlanet();
+  const { priorityConfigs, getAITaskSuggestion } = usePlanet();
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<string | null>(null);
+
   const x = useMotionValue(0);
   const background = useTransform(x, [0, 100], ['rgba(255,255,255,0)', 'rgba(16,185,129,0.2)']);
   const opacity = useTransform(x, [0, 100], [1, 0.5]);
 
   const isOverdue = task.dueDate && task.dueDate < Date.now() && task.status !== 'completed';
   const priorityColor = priorityConfigs.find(c => c.priority === task.priority)?.color || 'bg-blue-500';
+
+  const handleAiSuggestion = async () => {
+    if (aiSuggestion) {
+      setAiSuggestion(null);
+      return;
+    }
+    setIsAiLoading(true);
+    try {
+      const suggestion = await getAITaskSuggestion(task.id);
+      setAiSuggestion(suggestion);
+    } catch (error) {
+      console.error("AI Error:", error);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
 
   const handleDragEnd = (_: any, info: any) => {
     if (!isPartner && onComplete && info.offset.x > 100) {
@@ -604,6 +641,25 @@ const EnhancedTaskCard: React.FC<{
             </button>
           )}
         </div>
+        
+        <AnimatePresence>
+          {aiSuggestion && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 leading-relaxed font-medium">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles size={14} />
+                  <span className="font-black uppercase tracking-widest text-[8px]">اقتراح AI Oracle</span>
+                </div>
+                {aiSuggestion}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="flex items-center justify-between pt-2 border-t border-white/5">
           <div className="flex items-center gap-4">

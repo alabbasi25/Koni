@@ -4,7 +4,7 @@ import { Swords, Trophy, Timer, Play, CheckCircle2, XCircle, Plus, Zap, Flame, A
 import { usePlanet } from '../../context/KokabContext';
 
 export const Arena: React.FC = () => {
-  const { challenges, proposeChallenge, acceptChallenge, completeChallenge, currentUser, streaks, fitnessBattle, updateFitnessBattle } = usePlanet();
+  const { challenges, proposeChallenge, acceptChallenge, rejectChallenge, completeChallenge, currentUser, streaks, fitnessBattle, updateFitnessBattle } = usePlanet();
   const [showAdd, setShowAdd] = useState(false);
   const [newChallenge, setNewChallenge] = useState({ title: '', description: '', points: 10, duration: 30 });
   const [now, setNow] = useState(Date.now());
@@ -173,7 +173,10 @@ export const Arena: React.FC = () => {
                 >
                   <Play size={16} /> قبول التحدي
                 </button>
-                <button className="px-4 py-3 rounded-xl bg-rose-500/10 text-rose-500">
+                <button 
+                  onClick={() => rejectChallenge(c.id)}
+                  className="px-4 py-3 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
+                >
                   <XCircle size={20} />
                 </button>
               </div>

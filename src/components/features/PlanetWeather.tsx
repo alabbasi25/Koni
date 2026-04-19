@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Cloud, Sun, CloudLightning, Wind, Sparkles } from 'lucide-react';
 import { usePlanet } from '../../context/KokabContext';
 
@@ -89,12 +89,22 @@ export const PlanetWeather: React.FC = () => {
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-2xl font-black tracking-tight">
-            {weather.status === 'sunny' ? 'مشمس وصافٍ' : weather.status === 'cloudy' ? 'غائم جزئياً' : 'عاصفة قادمة'}
-          </h3>
-          <p className="text-sm text-[var(--color-text-secondary)] max-w-[280px] mx-auto leading-relaxed font-medium">
-            {weather.reason}
-          </p>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={weather.status}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h3 className="text-2xl font-black tracking-tight">
+                {weather.status === 'sunny' ? 'مشمس وصافٍ' : weather.status === 'cloudy' ? 'غائم جزئياً' : 'عاصفة قادمة'}
+              </h3>
+              <p className="text-sm text-[var(--color-text-secondary)] max-w-[280px] mx-auto leading-relaxed font-medium">
+                {weather.reason}
+              </p>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <div className="pt-4">
