@@ -61,13 +61,15 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               </div>
 
               <div className="flex gap-3 w-full pt-4">
-                <button 
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
                   onClick={onClose}
                   className="flex-1 py-4 rounded-2xl glass text-sm font-bold hover:bg-white/5 transition-all"
                 >
                   {cancelLabel}
-                </button>
-                <button 
+                </motion.button>
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => {
                     onConfirm();
                     onClose();
@@ -75,7 +77,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   className={`flex-1 py-4 rounded-2xl text-white text-sm font-bold shadow-xl transition-all hover:scale-105 active:scale-95 ${btnColors[variant]}`}
                 >
                   {confirmLabel}
-                </button>
+                </motion.button>
               </div>
             </div>
           </motion.div>

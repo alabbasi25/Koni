@@ -187,14 +187,14 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
         
         <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
           <div className="space-y-1">
-            <button
+            <motion.button
               onClick={() => setActiveTab('home')}
               whileTap={{ scale: 0.95 }}
               className={`w-full p-3 rounded-xl flex items-center gap-4 transition-all ${activeTab === 'home' ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' : 'hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]'}`}
             >
               <LayoutDashboard size={20} />
               <span className="text-sm font-bold">الرئيسية</span>
-            </button>
+            </motion.button>
           </div>
           
           {['جسور المودة والتواصل', 'المنظومة والمالية', 'إدارة الحياة اليومية', 'النمو والصحة', 'المستقبل والخصوصية'].map(cat => (
@@ -202,7 +202,7 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
               <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-40 px-2">{cat}</h3>
               <div className="space-y-1">
                 {menuItems.filter(item => item.category === cat).map(item => (
-                  <button
+                  <motion.button
                     key={item.id}
                     onClick={() => setActiveTab(item.id as ViewID)}
                     whileTap={{ scale: 0.97 }}
@@ -210,7 +210,7 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
                   >
                     {item.icon}
                     <span className="text-sm font-bold">{item.label}</span>
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
@@ -218,7 +218,8 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
         </div>
 
         <div className="p-6 border-t border-[var(--color-border)]">
-          <button 
+          <motion.button 
+            whileTap={{ scale: 0.98 }}
             onClick={() => setActiveTab('profile')}
             className="w-full p-3 rounded-xl bg-[var(--color-bg-surface)] flex items-center gap-3 hover:bg-[var(--color-primary)]/10 transition-all group"
           >
@@ -232,7 +233,7 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
               <div className="text-xs font-bold">{currentUser === 'F' ? 'فهد' : 'بشرى'}</div>
               <div className="text-[10px] opacity-50">عرض الملف الشخصي</div>
             </div>
-          </button>
+          </motion.button>
         </div>
       </aside>
 
@@ -241,12 +242,13 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
         {/* Header */}
         <header className="sticky top-0 p-6 flex justify-between items-center z-50 bg-[var(--color-bg-deep)]/80 backdrop-blur-xl border-b border-[var(--color-border)]/20 lg:py-8 lg:px-0 lg:bg-transparent lg:backdrop-blur-none lg:border-none">
           <div className="flex items-center gap-4">
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.9 }}
               onClick={() => setIsMenuOpen(true)}
               className="w-12 h-12 rounded-2xl glass flex items-center justify-center text-[var(--color-primary)] lg:hidden border border-[var(--color-border)]/40 shadow-xl"
             >
               <Menu size={24} />
-            </button>
+            </motion.button>
             <div className="lg:hidden">
               <h1 className="text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)]">كوكب</h1>
               <div className="flex items-center gap-1.5">
@@ -376,53 +378,63 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
                   </div>
                   <span className="text-xl font-black">القائمة</span>
                 </div>
-                <button onClick={() => setIsMenuOpen(false)} className="text-[var(--color-text-secondary)]">
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsMenuOpen(false)} 
+                  className="text-[var(--color-text-secondary)]"
+                >
                   <X size={24} />
-                </button>
+                </motion.button>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
                 <div className="space-y-1">
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => { setActiveTab('home'); setIsMenuOpen(false); }}
                     className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${activeTab === 'home' ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]'}`}
                   >
                     <LayoutDashboard size={20} />
                     <span className="text-sm font-bold">الرئيسية</span>
-                  </button>
+                  </motion.button>
                 </div>
                 {['جسور المودة والتواصل', 'المنظومة والمالية', 'إدارة الحياة اليومية', 'النمو والصحة', 'المستقبل والخصوصية'].map(cat => (
                   <div key={cat} className="space-y-3">
                     <h3 className="text-[10px] font-bold uppercase tracking-widest opacity-40 px-2">{cat}</h3>
                     <div className="space-y-1">
                       {menuItems.filter(item => item.category === cat).map(item => (
-                        <button
+                        <motion.button
+                          whileTap={{ scale: 0.98 }}
                           key={item.id}
                           onClick={() => { setActiveTab(item.id as ViewID); setIsMenuOpen(false); }}
                           className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${activeTab === item.id ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]'}`}
                         >
                           {item.icon}
                           <span className="text-sm font-bold">{item.label}</span>
-                        </button>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
                 ))}
                 <div className="space-y-1">
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => { setActiveTab('permissions'); setIsMenuOpen(false); }}
                     className={`w-full p-4 rounded-xl flex items-center gap-4 transition-all ${activeTab === 'permissions' ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' : 'hover:bg-[var(--color-bg-surface)] text-[var(--color-text-secondary)]'}`}
                   >
                     <Shield size={20} />
                     <span className="text-sm font-bold">الصلاحيات والسيادة</span>
-                  </button>
+                  </motion.button>
                 </div>
               </div>
 
               <div className="p-8 border-t border-[var(--color-border)]">
-                <button className="w-full p-4 rounded-xl bg-rose-500/10 text-rose-500 flex items-center gap-4 font-bold text-sm">
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
+                  className="w-full p-4 rounded-xl bg-rose-500/10 text-rose-500 flex items-center gap-4 font-bold text-sm"
+                >
                   <LogOut size={20} /> تسجيل الخروج
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           </>
@@ -445,7 +457,8 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
             onClick={() => setActiveTab('inventory')}
           />
           <div className="relative -top-8 px-2">
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.9 }}
               onClick={handlePresencePulse}
               className={`w-16 h-16 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] text-white shadow-2xl shadow-[var(--color-primary)]/40 flex items-center justify-center hover:scale-110 transition-transform duration-300 border-4 border-[var(--color-bg-deep)] ${presenceActive ? 'animate-pulse' : ''}`}
             >
@@ -458,7 +471,7 @@ export const Dashboard: React.FC<{ onSwitchUser: () => void }> = ({ onSwitchUser
                   className="absolute inset-0 rounded-full bg-white"
                 />
               )}
-            </button>
+            </motion.button>
           </div>
           <TabItem 
             icon={<Bot size={22} />} 
@@ -569,15 +582,16 @@ const QuickAction: React.FC<{ icon: React.ReactNode; label: string; color: strin
   };
 
   return (
-    <button 
+    <motion.button 
+      whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className="flex-shrink-0 w-24 h-24 glass-card flex flex-col items-center justify-center gap-2 hover:bg-[var(--color-primary)]/10 transition-all duration-300 hover:scale-[1.05] active:scale-[0.95] group border border-[var(--color-border)]/40"
+      className="flex-shrink-0 w-24 h-24 glass-card flex flex-col items-center justify-center gap-2 hover:bg-[var(--color-primary)]/10 transition-all duration-300 hover:scale-[1.05] group border border-[var(--color-border)]/40"
     >
       <div className={`w-10 h-10 rounded-2xl ${colorMap[color as keyof typeof colorMap]} flex items-center justify-center group-hover:rotate-12 transition-transform border`}>
         {icon}
       </div>
       <span className="text-[10px] font-bold tracking-tight">{label}</span>
-    </button>
+    </motion.button>
   );
 };
 

@@ -21,7 +21,8 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ currentTheme, setT
   return (
     <div className="grid grid-cols-2 gap-3">
       {themes.map((t) => (
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95 }}
           key={t.id}
           onClick={() => setTheme(t.id)}
           className={`relative flex items-center gap-4 p-4 rounded-[2rem] transition-all duration-500 overflow-hidden group ${
@@ -43,7 +44,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ currentTheme, setT
               className="absolute left-4 w-2 h-2 rounded-full bg-[var(--color-primary)] shadow-[0_0_10px_var(--color-primary)]"
             />
           )}
-        </button>
+        </motion.button>
       ))}
     </div>
   );

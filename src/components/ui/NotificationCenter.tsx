@@ -32,7 +32,8 @@ export const NotificationCenter: React.FC = () => {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button 
+      <motion.button 
+        whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-xl glass hover:bg-white/10 transition-all group"
       >
@@ -46,7 +47,7 @@ export const NotificationCenter: React.FC = () => {
             {unreadCount > 9 ? '+9' : unreadCount}
           </span>
         )}
-      </button>
+      </motion.button>
 
       <AnimatePresence>
         {isOpen && (
@@ -60,17 +61,22 @@ export const NotificationCenter: React.FC = () => {
               <h3 className="text-sm font-black uppercase tracking-widest opacity-60">الإشعارات</h3>
               <div className="flex gap-2">
                 {notifications.length > 0 && (
-                  <button 
+                  <motion.button 
+                    whileTap={{ scale: 0.9 }}
                     onClick={clearNotifications}
                     className="p-1.5 rounded-lg hover:bg-rose-500/10 text-rose-500 transition-all opacity-40 hover:opacity-100"
                     title="مسح الكل"
                   >
                     <Trash2 size={14} />
-                  </button>
+                  </motion.button>
                 )}
-                <button onClick={() => setIsOpen(false)} className="p-1.5 rounded-lg hover:bg-white/5 transition-all">
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsOpen(false)} 
+                  className="p-1.5 rounded-lg hover:bg-white/5 transition-all"
+                >
                   <X size={14} />
-                </button>
+                </motion.button>
               </div>
             </div>
 
@@ -102,12 +108,13 @@ export const NotificationCenter: React.FC = () => {
                         </p>
                         {!n.read && (
                           <div className="mt-3 flex justify-end">
-                            <button 
+                            <motion.button 
+                              whileTap={{ scale: 0.95 }}
                               onClick={() => markNotificationAsRead(n.id)}
                               className="text-[9px] font-black uppercase tracking-widest text-[var(--color-primary)] hover:underline flex items-center gap-1"
                             >
                               <Check size={10} /> تم الاطلاع
-                            </button>
+                            </motion.button>
                           </div>
                         )}
                       </div>
@@ -119,9 +126,12 @@ export const NotificationCenter: React.FC = () => {
             
             {notifications.length > 5 && (
               <div className="p-3 bg-white/[0.02] border-t border-white/5 text-center">
-                <button className="text-[10px] font-black opacity-40 hover:opacity-100 transition-all uppercase tracking-tighter">
+                <motion.button 
+                  whileTap={{ scale: 0.98 }}
+                  className="text-[10px] font-black opacity-40 hover:opacity-100 transition-all uppercase tracking-tighter"
+                >
                   عرض جميع الإشعارات السابقة
-                </button>
+                </motion.button>
               </div>
             )}
           </motion.div>

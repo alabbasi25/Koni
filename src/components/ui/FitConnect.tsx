@@ -89,7 +89,8 @@ export const FitConnect: React.FC = () => {
           </div>
         )}
 
-        <button 
+        <motion.button 
+          whileTap={{ scale: 0.98 }}
           onClick={handleConnect}
           disabled={isConnecting}
           className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${isConnecting ? 'bg-white/5 opacity-50' : 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20 hover:scale-[1.02]'}`}
@@ -106,7 +107,7 @@ export const FitConnect: React.FC = () => {
               <Activity size={18} /> ربط الآن
             </>
           )}
-        </button>
+        </motion.button>
       </div>
     </div>
   );

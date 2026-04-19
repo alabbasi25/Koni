@@ -20,7 +20,8 @@ export const PrivacySelector: React.FC<PrivacySelectorProps> = ({ state, onChang
       <label className="text-sm font-semibold text-[var(--color-text-secondary)] mr-1">خصوصية العنصر</label>
       <div className="grid grid-cols-3 gap-2 p-1 bg-[var(--color-bg-surface)] rounded-2xl border border-[var(--color-border)]">
         {options.map((opt) => (
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             key={opt.id}
             onClick={() => onChange(opt.id)}
             className={`relative flex flex-col items-center gap-1 py-3 rounded-xl transition-all duration-300 overflow-hidden ${
@@ -39,7 +40,7 @@ export const PrivacySelector: React.FC<PrivacySelectorProps> = ({ state, onChang
             )}
             <span className="relative z-10">{opt.icon}</span>
             <span className="relative z-10 text-xs font-bold">{opt.label}</span>
-          </button>
+          </motion.button>
         ))}
       </div>
     </div>
